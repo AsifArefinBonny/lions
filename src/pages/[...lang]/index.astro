@@ -91,6 +91,28 @@ const authorRole = author ? (await currentPositions(lang)).get(author.id) : unde
     </section>
   )}
 
+  {celebrations.length > 0 && greet.popup !== false && (
+    <aside class="celebrate" id="celebrate-pop" aria-labelledby="celebrate-title" hidden>
+      <div class="celebrate-head">
+        <span class="ribbon"><Icon name="gift" /></span>
+        <b id="celebrate-title">{greet.title}</b>
+        <button type="button" class="x" aria-label={t('greet.close')} data-close><Icon name="close" /></button>
+      </div>
+      <div class="pop-cards">
+        {celebrations.map((c) => (
+          <a class="pop-card" href={href(`/${c.member.id}/`, lang)} data-md={`${c.when.month}-${c.when.day}`} hidden>
+            <Avatar name={c.member.data.name} enName={c.member.data.enName} photo={c.member.data.photo} size={48} />
+            <div>
+              <small><Icon name={c.kind === 'birthday' ? 'cake' : 'rings'} />{t(`greet.${c.kind}`)}</small>
+              <b>{memberName(c.member.data, lang, c.member.collection === 'leos')}</b>
+              <p>{c.kind === 'birthday' ? greet.birthdayWish : greet.anniversaryWish}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </aside>
+  )}
+
   {site.features.events && (
     <section class="section">
       <div class="wrap">
@@ -188,6 +210,19 @@ const authorRole = author ? (await currentPositions(lang)).get(author.id) : unde
       box.querySelectorAll('.soon').forEach(function (el) { var n = daysUntil(el.dataset.md); if (n > 0 && n <= 7) { el.hidden = false; soon.push([n, el]); } });
       soon.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (s) { s[1].parentNode.appendChild(s[1]); });
       document.getElementById('cel-today').hidden = !todayCount;
+      var pop = document.getElementById('celebrate-pop'), seenKey = 'greetingsClosed', day = now.toISOString().slice(0, 10);
+      // A small card in the corner: it never covers the page and stays closed for the rest of the day once closed.
+      if (pop && todayCount) {
+        pop.querySelectorAll('.pop-card').forEach(function (el) { el.hidden = daysUntil(el.dataset.md) !== 0; });
+        var seen = '';
+        try { seen = localStorage.getItem(seenKey) || ''; } catch (e) {}
+        pop.querySelector('[data-close]').addEventListener('click', function () {
+          pop.classList.remove('in');
+          setTimeout(function () { pop.hidden = true; }, 300);
+          try { localStorage.setItem(seenKey, day); } catch (e) {}
+        });
+        if (seen !== day) setTimeout(function () { pop.hidden = false; setTimeout(function () { pop.classList.add('in'); }, 30); }, 1200);
+      }
       document.getElementById('cel-soon').hidden = !soon.length;
       box.hidden = !todayCount && !soon.length;
     })();

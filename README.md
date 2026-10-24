@@ -95,9 +95,13 @@ There are two kinds of account:
 5. In Firestore, create a collection named `admins` and add a document whose ID is your own email address in lowercase (it needs no fields). That makes you a portal admin.
 6. **Project settings → Your apps → Web app:** register an app and copy `apiKey`, `authDomain`, `projectId` and `appId` into the editor under **Club settings → Member portal (Firebase)**. These four values are meant to be public.
 
+### When a member leaves
+
+In `/admin/`, open the member and tick **No longer an active member** (or delete the entry). On the next publish they disappear from the website, committees and greetings, and the SMS job stops texting them even if their number is still stored. In the portal's **Member access** list, press **Remove** next to them as well.
+
 ### When a new member joins
 
-1. In `/admin/`, add them under **Members** (name and profile link name).
+1. In `/admin/`, add them under **Members** (name and profile link name). From the moment it is published they appear on the website, and they receive greetings and SMS once their dates and number are added.
 2. In `/account/`, signed in as a portal admin, pick the member under **Member access** and enter their email.
 3. Tell the member to open `/account/`, type that email and follow the link they receive.
 

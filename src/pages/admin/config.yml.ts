@@ -46,7 +46,7 @@ const personFields = (prefix: string, leo: boolean): Field[] => [
   str('website', 'Website'),
   dayMonth('birthday', 'Birthday (optional)'),
   dayMonth('anniversary', 'Wedding anniversary (optional)'),
-  { name: 'hidden', label: 'Hide from the website', widget: 'boolean', default: false, required: false },
+  { name: 'hidden', label: 'No longer an active member', widget: 'boolean', default: false, required: false, hint: 'Tick when someone leaves the club. They disappear from the website, committees and greetings, and stop receiving SMS. Untick to bring them back. Deleting the entry has the same effect.' },
   md('body', 'About'),
   ...bangla([str('name', 'Full name'), leo ? str('position', 'Position') : str('titles', 'Honours'), str('profession', 'Profession'), str('organisation', 'Organisation'), md('body', 'About')]),
 ];
@@ -157,6 +157,7 @@ const config = {
             ], { summary: '{{title}}' }),
             obj('greetings', 'Birthday and anniversary greetings', [
               { name: 'enabled', label: 'Show greetings on the home page', widget: 'boolean', default: true, required: false },
+              { name: 'popup', label: 'Also show a small closeable greetings card in the corner of the home page', widget: 'boolean', default: true, required: false },
               str('title', "Heading for today's greetings"), str('soonTitle', 'Heading for the coming week'),
               txt('birthdayWish', 'Birthday wish'), txt('anniversaryWish', 'Anniversary wish'),
               ...bangla([str('title', "Heading for today's greetings"), str('soonTitle', 'Heading for the coming week'), txt('birthdayWish', 'Birthday wish'), txt('anniversaryWish', 'Anniversary wish')]),
