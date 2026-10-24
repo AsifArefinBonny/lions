@@ -1,0 +1,110 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import Icon from '../../../components/Icon.astro';
+import Pic from '../../../components/Pic.astro';
+import { site, href, langPaths, fmtMonthYear, fmtYear, fmtNumber, monthName, pageMeta, type Lang } from '../../../lib/site';
+import { getBulletins } from '../../../lib/content';
+import { useT } from '../../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.bulletin ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('bulletin', lang, t);
+const issues = await getBulletins(lang);
+const [latest] = issues;
+const years = [...new Set(issues.map((b) => b.data.date.getUTCFullYear()))];
+const yearLabel = (y: number) => fmtYear(new Date(Date.UTC(y, 0, 1)), lang);
+---
+<Base lang={lang} path="/bulletin/" title={meta.title} description={meta.intro} image={latest?.data.cover}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  {!latest ? <section class="section"><div class="wrap"><p class="empty">{t('bulletin.none')}</p></div></section> : (
+    <Fragment>
+      <section class="section latest">
+        <div class="wrap feature">
+          <a class="shot" href={href(`/bulletin/${latest.id}/`, lang)}><Pic src={latest.data.cover} alt={latest.data.title} width={720} sizes="(min-width: 760px) 340px, 64vw" eager /></a>
+          <div>
+            <span class="eyebrow" style="color:var(--highlight)">{t('bulletin.latest')}</span>
+            <h2>{latest.data.title}</h2>
+            <p><span class="tag gold">{fmtMonthYear(latest.data.date, lang)}{latest.data.pages.length > 0 && ` · ${fmtNumber(latest.data.pages.length, lang)} ${t('bulletin.pages')}`}</span></p>
+            {latest.data.summary && <p class="lead">{latest.data.summary}</p>}
+            <div class="btns">
+              <a class="btn btn-primary" href={href(`/bulletin/${latest.id}/`, lang)}><Icon name="book" />{t('bulletin.read')}</a>
+              {latest.data.pdf && <a class="btn btn-line" href={href(latest.data.pdf)} download><Icon name="download" />{t('bulletin.download')}</a>}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section soft">
+        <div class="wrap">
+          <div class="sechead">
+            <h2>{t('bulletin.archive')}</h2>
+            <form class="filters" id="filters" style="margin:0">
+              <label>{t('act.year')}
+                <select name="y"><option value="">{t('act.all')}</option>{years.map((y) => <option value={y}>{yearLabel(y)}</option>)}</select>
+              </label>
+              <label>{t('act.month')}
+                <select name="m"><option value="">{t('act.all')}</option>{Array.from({ length: 12 }, (_, m) => <option value={m + 1}>{monthName(m + 1, lang)}</option>)}</select>
+              </label>
+            </form>
+          </div>
+          <div class="grid shelf" id="shelf">
+            {issues.map((b) => (
+              <a class="issue" href={href(`/bulletin/${b.id}/`, lang)} data-y={b.data.date.getUTCFullYear()} data-m={b.data.date.getUTCMonth() + 1}>
+                <div class="jacket">
+                  <Pic src={b.data.cover} alt={b.data.title} width={400} height={533} sizes="(min-width: 700px) 210px, 46vw" />
+                  <span class="month"><b>{monthName(b.data.date.getUTCMonth() + 1, lang)}</b>{yearLabel(b.data.date.getUTCFullYear())}</span>
+                  <span class="open"><Icon name="book" />{t('bulletin.read')}</span>
+                </div>
+                <strong>{b.data.title}</strong>
+                {b.data.pages.length > 0 && <small>{fmtNumber(b.data.pages.length, lang)} {t('bulletin.pages')}</small>}
+              </a>
+            ))}
+          </div>
+          <p class="empty" id="none" hidden>{t('bulletin.noMatch')}</p>
+        </div>
+      </section>
+    </Fragment>
+  )}
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('filters');
+      if (!form) return;
+      var cards = document.querySelectorAll('#shelf > a');
+      var params = new URLSearchParams(location.search);
+      ['y', 'm'].forEach(function (k) { if (params.get(k)) form.elements[k].value = params.get(k); });
+      function apply() {
+        var y = form.elements.y.value, m = form.elements.m.value, shown = 0;
+        cards.forEach(function (c) {
+          var ok = (!y || c.dataset.y === y) && (!m || c.dataset.m === m);
+          c.hidden = !ok;
+          if (ok) shown++;
+        });
+        document.getElementById('none').hidden = shown > 0;
+        var q = new URLSearchParams();
+        if (y) q.set('y', y);
+        if (m) q.set('m', m);
+        history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+      }
+      form.addEventListener('change', apply);
+      apply();
+    })();
+  </script>
+</Base>
+<style>
+  .feature { display: grid; gap: 28px; align-items: center; }
+  .shot { display: block; width: min(340px, 64vw); margin-inline: auto; border-radius: 6px 12px 12px 6px; overflow: hidden; box-shadow: -6px 0 0 -2px rgb(16 24 40 / 12%), 0 24px 48px rgb(16 24 40 / 24%); transform: rotate(-2deg); transition: transform .25s; }
+  .shot:hover { transform: rotate(0) scale(1.02); }
+  .shelf { grid-template-columns: repeat(auto-fill, minmax(min(46%, 190px), 1fr)); gap: 28px 20px; }
+  .issue { display: grid; gap: 4px; text-decoration: none; color: var(--ink); align-content: start; }
+  .issue strong { margin-top: 10px; line-height: 1.3; }
+  .issue small { color: var(--muted); }
+  .jacket { position: relative; aspect-ratio: 3 / 4; border-radius: 4px 10px 10px 4px; overflow: hidden; background: #fff; box-shadow: -4px 0 0 -1px rgb(16 24 40 / 14%), 0 10px 24px rgb(16 24 40 / 16%); transition: transform .2s, box-shadow .2s; }
+  .jacket :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .issue:hover .jacket { transform: translateY(-4px); box-shadow: -4px 0 0 -1px rgb(16 24 40 / 14%), 0 18px 36px rgb(16 24 40 / 24%); }
+  .month { position: absolute; left: 0; top: 12px; display: grid; padding: 6px 12px 6px 10px; border-radius: 0 8px 8px 0; background: var(--primary); color: #fff; font-size: .75rem; line-height: 1.25; }
+  .month b { color: var(--accent); font-size: .9rem; }
+  .open { position: absolute; inset: auto 0 0; display: flex; gap: 6px; align-items: center; justify-content: center; padding: 10px; background: color-mix(in srgb, var(--primary-dark) 88%, transparent); color: #fff; font-weight: 700; font-size: .85rem; transform: translateY(100%); transition: transform .2s; }
+  .issue:hover .open, .issue:focus-visible .open { transform: none; }
+  @media (min-width: 760px) { .feature { grid-template-columns: 340px 1fr; gap: 56px; } }
+</style>

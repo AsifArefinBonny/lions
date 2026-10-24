@@ -1,0 +1,31 @@
+---
+// Full-screen photo viewer for any `.gallery a` links on the page.
+import Icon from './Icon.astro';
+---
+<dialog class="lightbox" id="lightbox">
+  <img alt="" />
+  <button type="button" class="x" aria-label="Close"><Icon name="close" /></button>
+  <button type="button" class="p" aria-label="Previous"><Icon name="back" /></button>
+  <button type="button" class="n" aria-label="Next"><Icon name="arrow" /></button>
+</dialog>
+<script is:inline>
+  (function () {
+    var box = document.getElementById('lightbox');
+    if (!box || !box.showModal) return;
+    var img = box.querySelector('img'), links = [], at = 0;
+    function show(i) { at = (i + links.length) % links.length; img.src = links[at].href; }
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('.gallery a');
+      if (!a) return;
+      e.preventDefault();
+      links = Array.prototype.slice.call(a.closest('.gallery').querySelectorAll('a'));
+      show(links.indexOf(a));
+      box.showModal();
+    });
+    box.querySelector('.x').onclick = function () { box.close(); };
+    box.querySelector('.p').onclick = function () { show(at - 1); };
+    box.querySelector('.n').onclick = function () { show(at + 1); };
+    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
+    box.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') show(at - 1); if (e.key === 'ArrowRight') show(at + 1); });
+  })();
+</script>

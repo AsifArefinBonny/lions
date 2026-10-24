@@ -1,0 +1,234 @@
+{
+  "year": "2025-2026",
+  "theme": "",
+  "members": [
+    {
+      "member": "ln-skshakilahmed",
+      "position": "President",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "সভাপতি",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-murshidakhatun",
+      "position": "Immediate Past President",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "সদ্য প্রাক্তন সভাপতি",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-skaltafmamun",
+      "position": "1st Vice President",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "১ম সহ-সভাপতি",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-shahriarkabir",
+      "position": "2nd Vice President",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "২য় সহ-সভাপতি",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-audutrahmanimon",
+      "position": "Secretary",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "সেক্রেটারী",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-aminurrahmanrussel",
+      "position": "Treasurer & Leo Advisor",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "ট্রেজারার ও লিও অ্যাডভাইজার",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-asifarefinbonny",
+      "position": "Joint Secretary",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "জয়েন্ট সেক্রেটারী",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-nurjahanbegumruni",
+      "position": "Joint Treasurer",
+      "group": "Office Bearers",
+      "bn": {
+        "position": "জয়েন্ট ট্রেজারার",
+        "group": "কর্মকর্তাবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-sheikhanisurrahman",
+      "position": "Chairperson, Membership & Advisory Committee",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "চেয়ারপার্সন, মেম্বারশিপ ও অ্যাডভাইজরি কমিটি",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-smmahedihasan",
+      "position": "Club Administrator",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "ক্লাব অ্যাডমিনিস্ট্রেটর",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-fakhrulislam",
+      "position": "GMT Coordinator",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "জিএমটি কো-অর্ডিনেটর",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-mahfuzurrahmanbhuiyan",
+      "position": "GLT Coordinator",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "জিএলটি কো-অর্ডিনেটর",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-kazisiddiqurrahman",
+      "position": "Service Chairperson (GST Coordinator)",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "সার্ভিস চেয়ারপার্সন (জিএসটি কো-অর্ডিনেটর)",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-iqbalmasud",
+      "position": "Marketing Communications Chairperson",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "মার্কেটিং কমিউনিকেশনস চেয়ারপার্সন",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-smshahedhasan",
+      "position": "District Coordinator",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "ডিস্ট্রিক্ট কো-অর্ডিনেটর",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-jakiasultana",
+      "position": "Tail Twister",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "টেইল টুইস্টার",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-salmarahman",
+      "position": "Woman Affairs",
+      "group": "Coordinators & Chairpersons",
+      "bn": {
+        "position": "নারী বিষয়ক",
+        "group": "সমন্বয়কারী ও চেয়ারপার্সন"
+      }
+    },
+    {
+      "member": "ln-mmsiddiqui",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-parveensultana",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-farzanaislam",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-nargisakther",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-aftabuzzaman",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-mustafaimrulquayes",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-jayantamadhu",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    },
+    {
+      "member": "ln-kamalhossain",
+      "position": "Director",
+      "group": "Directors",
+      "bn": {
+        "position": "পরিচালক",
+        "group": "পরিচালকবৃন্দ"
+      }
+    }
+  ],
+  "bn": {
+    "theme": ""
+  }
+}

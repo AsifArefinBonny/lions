@@ -1,0 +1,152 @@
+{
+  "hero": {
+    "eyebrow": "Lions International · District 315 A2",
+    "title": "Where there is a need, there is a Lion.",
+    "text": "We are the Lions Club of Dhaka Oasis. Since 1997 our members have given their time to eye care, health, the environment and families in need.",
+    "image": "",
+    "bn": {
+      "eyebrow": "লায়ন্স ইন্টারন্যাশনাল · জেলা ৩১৫ এ২",
+      "title": "যেখানে প্রয়োজন, সেখানেই একজন লায়ন।",
+      "text": "আমরা লায়ন্স ক্লাব অব ঢাকা ওয়েসিস। ১৯৯৭ সাল থেকে আমাদের সদস্যরা চক্ষুসেবা, স্বাস্থ্য, পরিবেশ এবং অসহায় পরিবারের পাশে সময় দিয়ে আসছেন।"
+    }
+  },
+  "stats": [
+    {
+      "value": "1997",
+      "label": "Chartered",
+      "bn": {
+        "value": "১৯৯৭",
+        "label": "চার্টার"
+      }
+    },
+    {
+      "value": "31",
+      "label": "Active Lions",
+      "bn": {
+        "value": "৩১",
+        "label": "সক্রিয় লায়ন"
+      }
+    },
+    {
+      "value": "315 A2",
+      "label": "District",
+      "bn": {
+        "value": "৩১৫ এ২",
+        "label": "জেলা"
+      }
+    }
+  ],
+  "causesTitle": "How we serve",
+  "causes": [
+    {
+      "icon": "eye",
+      "title": "Vision",
+      "text": "Free eye camps and screenings for people who cannot afford care.",
+      "bn": {
+        "title": "দৃষ্টি",
+        "text": "যাঁদের সামর্থ্য নেই তাঁদের জন্য বিনামূল্যে চক্ষু শিবির ও পরীক্ষা।"
+      }
+    },
+    {
+      "icon": "heart",
+      "title": "Health",
+      "text": "Blood donation drives and health support in our communities.",
+      "bn": {
+        "title": "স্বাস্থ্য",
+        "text": "রক্তদান কর্মসূচি এবং স্বাস্থ্যসেবায় সহায়তা।"
+      }
+    },
+    {
+      "icon": "leaf",
+      "title": "Environment",
+      "text": "Tree plantation programmes with families and local partners.",
+      "bn": {
+        "title": "পরিবেশ",
+        "text": "পরিবার ও স্থানীয় সহযোগীদের নিয়ে বৃক্ষরোপণ কর্মসূচি।"
+      }
+    },
+    {
+      "icon": "food",
+      "title": "Hunger and relief",
+      "text": "Food and essentials for families in difficult times.",
+      "bn": {
+        "title": "ক্ষুধা ও ত্রাণ",
+        "text": "কঠিন সময়ে পরিবারগুলোর জন্য খাদ্য ও প্রয়োজনীয় সামগ্রী।"
+      }
+    },
+    {
+      "icon": "youth",
+      "title": "Youth",
+      "text": "We sponsor a Leo club to help young people grow into leaders.",
+      "bn": {
+        "title": "তরুণ সমাজ",
+        "text": "তরুণ নেতৃত্ব গড়ে তুলতে আমরা একটি লিও ক্লাব স্পনসর করি।"
+      }
+    },
+    {
+      "icon": "hands",
+      "title": "Fellowship",
+      "text": "Monthly meetings that build friendship and leadership.",
+      "bn": {
+        "title": "ফেলোশিপ",
+        "text": "মাসিক সভা, যা বন্ধুত্ব ও নেতৃত্ব গড়ে তোলে।"
+      }
+    }
+  ],
+  "join": {
+    "title": "Join us. Serve those in need.",
+    "text": "Build friendship. Be a leader. Membership is by invitation, and it starts with a conversation.",
+    "button": "Ask about membership",
+    "bn": {
+      "title": "আমাদের সাথে যোগ দিন। অসহায়ের সেবা করুন।",
+      "text": "বন্ধুত্ব গড়ুন। নেতৃত্ব দিন। সদস্যপদ আমন্ত্রণের মাধ্যমে হয়, আর শুরুটা হয় একটি আলাপ দিয়ে।",
+      "button": "সদস্যপদ সম্পর্কে জানুন"
+    },
+    "image": ""
+  },
+  "message": {
+    "member": "",
+    "title": "",
+    "text": "",
+    "bn": {
+      "title": "",
+      "text": ""
+    }
+  },
+  "bn": {
+    "causesTitle": "আমরা যেভাবে সেবা করি"
+  },
+  "impact": {
+    "title": "Our impact",
+    "showAuto": true,
+    "items": [],
+    "bn": {
+      "title": "আমাদের অর্জন"
+    }
+  },
+  "greetings": {
+    "enabled": true,
+    "title": "Today's celebrations",
+    "soonTitle": "Coming up this week",
+    "birthdayWish": "Happy birthday! Wishing you good health, happiness and many more years of service.",
+    "anniversaryWish": "Happy anniversary! Wishing you both a lifetime of happiness together.",
+    "bn": {
+      "title": "আজকের শুভেচ্ছা",
+      "soonTitle": "এই সপ্তাহে আসছে",
+      "birthdayWish": "শুভ জন্মদিন! আপনার সুস্বাস্থ্য, সুখ এবং সেবার পথে আরও অনেক বছর কামনা করি।",
+      "anniversaryWish": "শুভ বিবাহবার্ষিকী! আপনাদের দুজনের জীবন আনন্দে ভরে থাকুক।"
+    }
+  },
+  "spotlight": {
+    "image": "",
+    "title": "",
+    "text": "",
+    "button": "",
+    "link": "",
+    "bn": {
+      "title": "",
+      "text": "",
+      "button": ""
+    }
+  }
+}

@@ -1,0 +1,59 @@
+---
+import { render } from 'astro:content';
+import { marked } from 'marked';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import Pic from '../../components/Pic.astro';
+import { site, href, langPaths, memberName, initials, pageMeta, type Lang } from '../../lib/site';
+import { getPage, getMembers, banglaBody } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.founder ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const page = await getPage('founder', lang);
+const d = page?.data;
+const member = d?.member ? (await getMembers(lang)).find((m) => m.id === d.member) : undefined;
+const name = member ? memberName(member.data, lang) : (d?.name ?? '');
+const photo = d?.photo || member?.data.photo;
+const translated = page ? banglaBody(page, lang) : undefined;
+const { Content } = page ? await render(page) : { Content: null };
+const writings = (d?.writings ?? []).filter((w) => w.title && w.text);
+const banner = pageMeta('founder', lang, t).image;
+---
+<Base lang={lang} path="/founder/" title={d?.title ?? t('founder.title')} description={d?.intro ?? name} image={photo}>
+  <PageHead title={d?.title ?? t('founder.title')} text={d?.intro} image={banner} />
+  <section class="section">
+    <div class="wrap split" style="grid-template-columns:var(--cols, 1fr)">
+      <aside class="card founder-card">
+        <div class="portrait">{resolveImage(photo) ? <Pic src={photo} alt={name} width={640} height={800} sizes="(min-width: 860px) 320px, 92vw" eager /> : <span aria-hidden="true">{initials(member?.data.enName ?? d?.name ?? 'F')}</span>}</div>
+        <div class="pad">
+          <h2 style="font-size:1.3rem;margin-bottom:4px">{name}</h2>
+          {d?.role && <div style="color:var(--highlight);font-weight:700">{d.role}</div>}
+          {member && <a class="more" style="margin-top:12px" href={href(`/${member.id}/`, lang)}>{t('founder.profile')}<Icon name="arrow" /></a>}
+        </div>
+      </aside>
+      <div class="prose">
+        <h2 style="margin-top:0">{t('founder.bio')}</h2>
+        {translated ? <Fragment set:html={translated} /> : Content && <Content />}
+      </div>
+    </div>
+  </section>
+  <section class="section soft">
+    <div class="wrap" style="max-width:860px">
+      <div class="sechead"><h2>{t('founder.writings')}</h2></div>
+      {writings.length === 0 ? <p class="empty">{t('founder.none')}</p> : writings.map((w) => (
+        <article class="card writing">
+          <h3>{w.title}</h3>
+          {w.date && <time>{w.date}</time>}
+          <div class="prose" set:html={marked.parse(w.text ?? '')} />
+        </article>
+      ))}
+    </div>
+  </section>
+</Base>
+<style>
+  @media (min-width: 860px) { .split { --cols: 320px 1fr; } }
+</style>

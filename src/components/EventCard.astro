@@ -1,0 +1,24 @@
+---
+import Icon from './Icon.astro';
+import Pic from './Pic.astro';
+import { href, fmtMonthShort, fmtDayNum, fmtDay, fmtTime, hasTime, fmtYear, fmtNumber, type Lang } from '../lib/site';
+import { resolveImage } from '../lib/images';
+const { event, lang } = Astro.props as { event: any; lang: Lang };
+const d = event.data;
+const photo = resolveImage(d.cover) ? d.cover : d.gallery.find((g: string) => resolveImage(g));
+---
+<a class:list={['card', 'event', { 'has-photo': !!photo }]} href={href(`/events/${event.id}/`, lang)}>
+  {photo && <div class="cover"><Pic src={photo} alt="" width={640} height={360} sizes="(min-width: 700px) 520px, 92vw" /></div>}
+  <div class="event-body">
+    <div class="datebox"><span>{fmtMonthShort(d.date, lang)}</span><b>{fmtDayNum(d.date, lang)}</b></div>
+    <div>
+      <h3>{d.title}</h3>
+      <div class="meta">
+        <span><Icon name="calendar" />{fmtDay(d.date, lang)}, {fmtYear(d.date, lang)}</span>
+        {hasTime(d.date) && <span><Icon name="clock" />{fmtTime(d.date, lang)}</span>}
+        {d.venue && <span><Icon name="pin" />{d.venue}</span>}
+        {d.gallery.length > 0 && <span><Icon name="image" />{fmtNumber(d.gallery.length, lang)}</span>}
+      </div>
+    </div>
+  </div>
+</a>

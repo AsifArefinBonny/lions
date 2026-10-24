@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// Security rules for the member portal (/account/). Paste into Firebase console → Firestore → Rules.
+//
+//   admins/{email}     who may manage member access (created by hand in the Firebase console)
+//   access/{handle}    which email may edit which member profile, e.g. access/ln-asifarefinbonny
+//   profiles/{handle}  what a member has entered about themselves; the website reads this when it builds
+//   private/{handle}   the member's mobile number for club SMS; private
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(myEmail()));
+    }
+    function owns(handle) {
+      return signedIn() && get(/databases/$(database)/documents/access/$(handle)).data.email == myEmail();
+    }
+    function validProfile() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['photo', 'profession', 'organisation', 'phone', 'whatsapp', 'email', 'facebook', 'linkedin', 'website', 'bio', 'birthday', 'anniversary', 'bn', 'updatedAt'])
+        && d.updatedAt == request.time
+        && (!('photo' in d) || (d.photo is string && d.photo.size() < 400000))
+        && (!('bio' in d) || (d.bio is string && d.bio.size() < 4000));
+    }
+
+    match /admins/{email} {
+      allow get: if signedIn() && (myEmail() == email || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+    match /access/{handle} {
+      allow read: if isAdmin() || (signedIn() && resource.data.email == myEmail());
+      allow write: if isAdmin() && request.resource.data.keys().hasOnly(['email']) && request.resource.data.email is string;
+      allow delete: if isAdmin();
+    }
+    // Private contact details for club notices. Never shown on the website; readable only by the member and admins.
+    match /private/{handle} {
+      allow read: if isAdmin() || owns(handle);
+      allow create, update: if (isAdmin() || owns(handle))
+        && request.resource.data.keys().hasOnly(['mobile', 'sms', 'updatedAt'])
+        && request.resource.data.mobile is string && request.resource.data.mobile.size() < 30;
+      allow delete: if isAdmin();
+    }
+    match /profiles/{handle} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || owns(handle)) && validProfile();
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,19 @@
+---
+// Renders an uploaded image resized and compressed (WebP, responsive sizes).
+// Falls back to a plain <img> for external URLs.
+import { Image } from 'astro:assets';
+import { resolveImage } from '../lib/images';
+interface Props { src?: string; alt?: string; width?: number; height?: number; class?: string; eager?: boolean; sizes?: string; quality?: number }
+const { src, alt = '', width = 800, height, class: cls, eager = false, sizes, quality = 82 } = Astro.props;
+const meta = resolveImage(src);
+const w = meta ? Math.min(width, meta.width) : width;
+const h = meta ? (height ? Math.round((height * w) / width) : Math.round((meta.height * w) / meta.width)) : height;
+// Two sizes are enough (small screens and full size); more would multiply the space every photo takes on the host.
+const widths = [...new Set([Math.round(w / 2), w])].filter((x) => x >= 80);
+---
+{meta ? (
+  <Image src={meta} alt={alt} width={w} height={h} widths={widths} fit={height ? 'cover' : undefined} class={cls} sizes={sizes} quality={quality}
+    loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} />
+) : src && /^(https?:)?\/\//.test(src) ? (
+  <img src={src} alt={alt} width={width} height={height} class={cls} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+) : null}

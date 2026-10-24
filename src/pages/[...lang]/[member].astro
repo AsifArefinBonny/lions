@@ -1,0 +1,85 @@
+---
+import { render } from 'astro:content';
+import QRCode from 'qrcode';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import Avatar from '../../components/Avatar.astro';
+import { site, getSite, getLeo, href, langs, memberName, digits, digitsFor, type Lang } from '../../lib/site';
+import { getMembers, getLeos, currentPositions, banglaBody } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+// Every member gets a short, shareable address at the top level of the site: /ln-name/
+export async function getStaticPaths() {
+  if (!site.features.members) return [];
+  const out = [];
+  for (const lang of langs) {
+    const roles = await currentPositions(lang);
+    for (const member of await getMembers(lang)) {
+      out.push({ params: { lang: lang === 'en' ? undefined : lang, member: member.id }, props: { lang, member, role: roles.get(member.id) ?? member.data.position } });
+    }
+    for (const member of site.features.leo ? await getLeos(lang) : []) {
+      out.push({ params: { lang: lang === 'en' ? undefined : lang, member: member.id }, props: { lang, member, role: member.data.position } });
+    }
+  }
+  return out;
+}
+const { lang, member, role } = Astro.props as { lang: Lang; member: any; role?: string };
+const t = useT(lang);
+const isLeo = member.collection === 'leos';
+const club = isLeo ? { name: (getLeo(lang) as any).name } : getSite(lang);
+const d = member.data;
+const name = memberName(d, lang, isLeo);
+// QR code for this profile, drawn at build time (no script runs in the browser).
+const profileUrl = new URL(href(`/${member.id}/`, lang), Astro.site).href;
+const qr = await QRCode.toString(profileUrl, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: site.theme.primary, light: '#0000' } });
+const translated = banglaBody(member, lang);
+const { Content } = await render(member);
+const portalBio: string[] = typeof d.bio === 'string' && d.bio.trim() ? d.bio.split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean) : [];
+const hasBio = portalBio.length > 0 || !!translated || !!member.body?.trim();
+const wa = digits(d.whatsapp);
+const facts = [
+  [t('members.role'), role],
+  [t('members.club'), club.name],
+  [t('members.since'), digitsFor(d.memberSince, lang)],
+  [t('members.profession'), d.profession],
+  [t('members.organisation'), d.organisation],
+].filter(([, v]) => v);
+const description = [role, club.name].filter(Boolean).join(', ');
+---
+<Base lang={lang} path={`/${member.id}/`} title={name} description={description} image={d.photo}>
+  <PageHead title="" back={href(isLeo ? '/leo/' : '/members/', lang)} backLabel={isLeo ? club.name : t('members.back')} tall />
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <article class="card profile" style="overflow:visible">
+        <div class="top">
+          <Avatar name={d.name} enName={d.enName} photo={d.photo} size={148} />
+          <h1>{name}</h1>
+          <div class="role">{role ?? t('members.member')}</div>
+          <div class="muted">{club.name}</div>
+          <div class="btns">
+            <button class="btn btn-gold btn-sm" type="button" data-share data-copied={t('members.copied')}><Icon name="share" /><span>{t('members.share')}</span></button>
+            <a class="btn btn-primary btn-sm" href={href(`/vcard/${member.id}.vcf`)} download={`${member.id}.vcf`}><Icon name="download" />{t('members.save')}</a>
+            {d.phone && <a class="btn btn-line btn-sm" href={`tel:${d.phone.replace(/\s/g, '')}`}><Icon name="phone" />{t('members.call')}</a>}
+            {wa && <a class="btn btn-line btn-sm" href={`https://wa.me/${wa}`} rel="noopener"><Icon name="chat" />WhatsApp</a>}
+            {d.email && <a class="btn btn-line btn-sm" href={`mailto:${d.email}`}><Icon name="mail" />{t('members.email')}</a>}
+            {d.facebook && <a class="btn btn-line btn-sm" href={d.facebook} rel="noopener"><Icon name="facebook" />Facebook</a>}
+            {d.linkedin && <a class="btn btn-line btn-sm" href={d.linkedin} rel="noopener"><Icon name="linkedin" />LinkedIn</a>}
+            {d.website && <a class="btn btn-line btn-sm" href={d.website} rel="noopener"><Icon name="globe" />{t('members.website')}</a>}
+          </div>
+        </div>
+        <dl class="facts" style="margin:0">{facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        <div class="qr"><Fragment set:html={qr} /><p><b style="color:var(--ink)">{t('members.qr')}</b><br />{t('members.qrText')}</p></div>
+        {hasBio && <div class="pad prose"><h2 style="margin-top:0;font-size:1.2rem">{t('members.about')}</h2>{portalBio.length > 0 ? portalBio.map((p) => <p style="white-space:pre-line">{p}</p>) : translated ? <Fragment set:html={translated} /> : <Content />}</div>}
+      </article>
+    </div>
+  </section>
+  <script is:inline>
+    document.querySelectorAll('[data-share]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (navigator.share) return navigator.share({ title: document.title, url: location.href }).catch(function () {});
+        navigator.clipboard.writeText(location.href).then(function () { b.querySelector('span').textContent = b.dataset.copied; });
+      });
+    });
+  </script>
+</Base>

@@ -1,0 +1,51 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Pic from '../../components/Pic.astro';
+import { getSite, langPaths, fmtDate, pageMeta, type Lang } from '../../lib/site';
+import { getPage, banglaBody } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const site = getSite(lang);
+const page = await getPage('about', lang);
+const translated = page ? banglaBody(page, lang) : undefined;
+const { Content } = page ? await render(page) : { Content: null };
+const charter = site.charterDate ? fmtDate(new Date(`${site.charterDate}T00:00:00Z`), lang) : '';
+const profile = [
+  [t('about.clubNo'), site.clubNo],
+  [t('about.identNo'), site.identNo],
+  [t('about.charter'), charter],
+  [t('about.district'), site.affiliation],
+  [t('about.founder'), site.founder],
+].filter(([, v]) => v);
+---
+<Base lang={lang} path="/about/" title={page?.data.title ?? t('about.title')} description={page?.data.intro} image={page?.data.image}>
+  <PageHead title={page?.data.title ?? t('about.title')} text={page?.data.intro} image={pageMeta('about', lang, t).image} />
+  <section class="section">
+    <div class="wrap split">
+      <div class="prose">
+        {page?.data.image && <Pic src={page.data.image} alt="" width={900} sizes="(min-width: 860px) 700px, 92vw" />}
+        {translated ? <Fragment set:html={translated} /> : Content && <Content />}
+        {page && page.data.timeline.length > 0 && (
+          <Fragment>
+            <h2>{t('about.journey')}</h2>
+            <ol class="journey">{page.data.timeline.map((i) => <li><b>{i.year}</b> · <strong>{i.title}</strong>{i.text && <p>{i.text}</p>}</li>)}</ol>
+          </Fragment>
+        )}
+        {page?.data.pledge && (
+          <Fragment><h2>{page.data.pledgeTitle}</h2><div class="pledge" lang="bn">{page.data.pledge}</div></Fragment>
+        )}
+      </div>
+      <aside class="card">
+        <div class="pad" style="border-bottom:1px solid var(--line)"><h3 style="margin:0">{t('about.profile')}</h3></div>
+        <dl class="facts" style="border:0;grid-template-columns:1fr;margin:0">
+          {profile.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+      </aside>
+    </div>
+  </section>
+</Base>

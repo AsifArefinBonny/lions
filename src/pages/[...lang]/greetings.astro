@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import Avatar from '../../components/Avatar.astro';
+import { site, href, langPaths, clubNow, memberName, fmtDayMonth, monthName, pageMeta, type Lang } from '../../lib/site';
+import { getMembers, getLeos } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.greetings && site.features.members ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('greetings', lang, t);
+const people = [...(await getMembers(lang)), ...(site.features.leo ? await getLeos(lang) : [])];
+const rows = people.flatMap((m) =>
+  (['birthday', 'anniversary'] as const).filter((k) => m.data[k]).map((kind) => ({ kind, when: m.data[kind]!, member: m })),
+);
+// Start the list from the current month so the nearest dates come first.
+const thisMonth = clubNow().getUTCMonth() + 1;
+const months = Array.from({ length: 12 }, (_, i) => ((thisMonth - 1 + i) % 12) + 1)
+  .map((m) => ({ m, rows: rows.filter((r) => r.when.month === m).sort((a, b) => a.when.day - b.when.day) }))
+  .filter((g) => g.rows.length);
+---
+<Base lang={lang} path="/greetings/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap" style="max-width:760px">
+      {months.length === 0 ? <p class="empty">{t('greet.none')}</p> : months.map((g) => (
+        <div style="margin-bottom:32px">
+          <div class="sechead"><h2 style="font-size:1.35rem">{monthName(g.m, lang)}</h2></div>
+          <div class="rows">
+            {g.rows.map((r) => (
+              <a class="card row" href={href(`/${r.member.id}/`, lang)} data-md={`${r.when.month}-${r.when.day}`} data-today={t('greet.today')}>
+                <Avatar name={r.member.data.name} enName={r.member.data.enName} photo={r.member.data.photo} size={56} />
+                <div class="who"><b>{memberName(r.member.data, lang, r.member.collection === 'leos')}</b><small>{t(`greet.${r.kind}`)}</small></div>
+                <span class="kind"><Icon name={r.kind === 'birthday' ? 'cake' : 'rings'} /></span>
+                <span style="margin-left:0">{fmtDayMonth(r.when, lang)}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+  <script is:inline define:vars={{ offset: site.utcOffsetHours }}>
+    // Highlight today's birthdays and anniversaries using the club's own date.
+    (function () {
+      var d = new Date(Date.now() + offset * 3600000), key = (d.getUTCMonth() + 1) + '-' + d.getUTCDate();
+      document.querySelectorAll('[data-md="' + key + '"]').forEach(function (el) {
+        el.classList.add('today');
+        el.querySelector('small').textContent += ' · ' + el.dataset.today;
+      });
+    })();
+  </script>
+</Base>

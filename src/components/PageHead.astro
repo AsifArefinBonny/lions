@@ -1,0 +1,16 @@
+---
+import Icon from './Icon.astro';
+import Pic from './Pic.astro';
+import { resolveImage } from '../lib/images';
+const { title, text, back, backLabel, tall = false, image } = Astro.props;
+const photo = !!resolveImage(image);
+---
+<section class:list={['pagehead', { tall, photo }]}>
+  {photo && <div class="hero-img"><Pic src={image} alt="" width={1600} sizes="100vw" eager /></div>}
+  <div class="wrap">
+    {back && <a class="crumb" href={back}><Icon name="back" />{backLabel}</a>}
+    <h1>{title}</h1>
+    {text && <p>{text}</p>}
+    <slot />
+  </div>
+</section>

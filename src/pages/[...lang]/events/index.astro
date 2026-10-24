@@ -1,0 +1,32 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import Icon from '../../../components/Icon.astro';
+import EventCard from '../../../components/EventCard.astro';
+import { site, href, langPaths, pageMeta, type Lang } from '../../../lib/site';
+import { getEvents } from '../../../lib/content';
+import { useT } from '../../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.events ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('events', lang, t);
+const { upcoming, past } = await getEvents(lang);
+---
+<Base lang={lang} path="/events/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap">
+      <div class="sechead"><h2>{t('events.upcoming')}</h2></div>
+      {upcoming.length ? <div class="grid g2">{upcoming.map((e) => <EventCard event={e} lang={lang} />)}</div> : <p class="empty">{t('home.noUpcoming')}</p>}
+    </div>
+  </section>
+  {past.length > 0 && (
+    <section class="section soft">
+      <div class="wrap">
+        <div class="sechead"><h2>{t('events.past')}</h2>{site.features.activities && <a class="more" href={href('/activities/', lang)}>{t('home.timeline')}<Icon name="arrow" /></a>}</div>
+        <div class="grid g2">{past.slice(0, 8).map((e) => <EventCard event={e} lang={lang} />)}</div>
+      </div>
+    </section>
+  )}
+</Base>

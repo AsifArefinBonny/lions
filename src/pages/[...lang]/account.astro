@@ -1,0 +1,294 @@
+---
+// Member portal. A member signs in with a link sent to their email and edits only their own profile.
+// Portal admins can also link emails to member profiles. Data is kept in Firebase (see firestore.rules).
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import { site, href, langPaths, monthName, type Lang } from '../../lib/site';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const fb = site.integrations.firebase ?? { apiKey: '', authDomain: '', projectId: '', appId: '' };
+const on = !!(fb.apiKey && fb.projectId);
+
+const en = {
+  title: 'Member sign-in', intro: 'Update your own photo, details and links.',
+  off: 'Member sign-in has not been switched on yet.', loading: 'Loading…',
+  emailLabel: 'Your email address', send: 'Email me a sign-in link', sent: 'Check your inbox. We have sent a sign-in link to', confirm: 'Please confirm your email address to finish signing in.',
+  none: 'This email address is not linked to a member profile yet. Please ask a club admin to add it.', signedInAs: 'Signed in as', signOut: 'Sign out',
+  editing: 'Profile', photo: 'Photo', choosePhoto: 'Choose a photo', photoHint: 'A clear picture of your face works best. It is resized automatically.',
+  profession: 'Profession', organisation: 'Organisation', phone: 'Phone', whatsapp: 'WhatsApp number (with country code)', email: 'Email', facebook: 'Facebook link', linkedin: 'LinkedIn link', website: 'Website', bio: 'About you',
+  publicNote: 'Everything you enter here is shown publicly on your profile page. Leave a field empty to keep it private.',
+  bangla: 'Bangla version (optional)', birthday: 'Birthday', anniversary: 'Wedding anniversary', month: 'Month', day: 'Day', datesNote: 'Day and month only. Fill these in if you would like the club to greet you on the website.',
+  save: 'Save my profile', saving: 'Saving…', saved: 'Saved. Your changes will appear on the website within about half an hour.', failed: 'Something went wrong. Please try again.',
+  privateTitle: 'For club notices only (never shown on the website)', mobile: 'Mobile number', smsOk: 'Send me club notices and greetings by SMS',
+  admin: 'Member access (admins)', adminHint: 'Link a member profile to the email address they will sign in with.', member: 'Member', link: 'Link email', remove: 'Remove', viewProfile: 'View my page',
+};
+const bn: typeof en = {
+  title: 'সদস্য লগইন', intro: 'আপনার নিজের ছবি, তথ্য ও লিংক আপডেট করুন।',
+  off: 'সদস্য লগইন এখনো চালু করা হয়নি।', loading: 'লোড হচ্ছে…',
+  emailLabel: 'আপনার ইমেইল ঠিকানা', send: 'আমাকে লগইন লিংক পাঠান', sent: 'আপনার ইনবক্স দেখুন। লগইন লিংক পাঠানো হয়েছে এই ঠিকানায়:', confirm: 'লগইন সম্পন্ন করতে আপনার ইমেইল ঠিকানাটি নিশ্চিত করুন।',
+  none: 'এই ইমেইল ঠিকানাটি এখনো কোনো সদস্য প্রোফাইলের সাথে যুক্ত নয়। অনুগ্রহ করে ক্লাবের অ্যাডমিনকে যুক্ত করতে বলুন।', signedInAs: 'লগইন করা আছে', signOut: 'লগআউট',
+  editing: 'প্রোফাইল', photo: 'ছবি', choosePhoto: 'ছবি বাছাই করুন', photoHint: 'মুখ স্পষ্ট দেখা যায় এমন ছবি সবচেয়ে ভালো। ছবির আকার স্বয়ংক্রিয়ভাবে ঠিক করা হয়।',
+  profession: 'পেশা', organisation: 'প্রতিষ্ঠান', phone: 'ফোন', whatsapp: 'হোয়াটসঅ্যাপ নম্বর (কান্ট্রি কোডসহ)', email: 'ইমেইল', facebook: 'ফেসবুক লিংক', linkedin: 'লিংকডইন লিংক', website: 'ওয়েবসাইট', bio: 'আপনার সম্পর্কে',
+  publicNote: 'এখানে যা লিখবেন তা আপনার প্রোফাইল পাতায় সবার জন্য দৃশ্যমান হবে। কোনো তথ্য গোপন রাখতে চাইলে ঘরটি ফাঁকা রাখুন।',
+  bangla: 'বাংলা সংস্করণ (ঐচ্ছিক)', birthday: 'জন্মদিন', anniversary: 'বিবাহবার্ষিকী', month: 'মাস', day: 'দিন', datesNote: 'শুধু দিন ও মাস। ক্লাব ওয়েবসাইটে আপনাকে শুভেচ্ছা জানাক, এমন চাইলে পূরণ করুন।',
+  save: 'আমার প্রোফাইল সেভ করুন', saving: 'সেভ হচ্ছে…', saved: 'সেভ হয়েছে। আপনার পরিবর্তন প্রায় আধা ঘণ্টার মধ্যে ওয়েবসাইটে দেখা যাবে।', failed: 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।',
+  privateTitle: 'শুধু ক্লাবের নোটিশের জন্য (ওয়েবসাইটে কখনো দেখানো হয় না)', mobile: 'মোবাইল নম্বর', smsOk: 'ক্লাবের নোটিশ ও শুভেচ্ছা আমাকে এসএমএসে পাঠান',
+  admin: 'সদস্য অ্যাক্সেস (অ্যাডমিন)', adminHint: 'সদস্য যে ইমেইল দিয়ে লগইন করবেন, সেটি তাঁর প্রোফাইলের সাথে যুক্ত করুন।', member: 'সদস্য', link: 'ইমেইল যুক্ত করুন', remove: 'মুছুন', viewProfile: 'আমার পাতা দেখুন',
+};
+const S = lang === 'bn' ? bn : en;
+const fields = ['profession', 'organisation', 'phone', 'whatsapp', 'email', 'facebook', 'linkedin', 'website'] as const;
+const types: Record<string, string> = { phone: 'tel', whatsapp: 'tel', email: 'email', facebook: 'url', linkedin: 'url', website: 'url' };
+const data = { firebase: fb, strings: S, membersUrl: href('/members.json'), home: href('/', lang) };
+const months = Array.from({ length: 12 }, (_, i) => ({ v: i + 1, label: monthName(i + 1, lang) }));
+---
+<Base lang={lang} path="/account/" title={S.title} description={S.intro} noindex>
+  <PageHead title={S.title} text={S.intro} />
+  <section class="section">
+    <div class="wrap" style="max-width:760px">
+      {!on ? <p class="empty">{S.off}</p> : (
+        <Fragment>
+          <p class="empty" id="acc-loading">{S.loading}</p>
+
+          <form class="form card pad" id="acc-signin" hidden>
+            <div class="field"><label for="acc-email">{S.emailLabel}</label><input id="acc-email" type="email" required autocomplete="email" /></div>
+            <div><button class="btn btn-primary" type="submit"><Icon name="mail" /><span>{S.send}</span></button></div>
+            <p class="status ok" id="acc-sent" hidden></p>
+          </form>
+
+          <div id="acc-app" hidden>
+            <p class="muted" style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center">
+              <span>{S.signedInAs} <b id="acc-who"></b></span>
+              <button class="btn btn-line btn-sm" type="button" id="acc-out">{S.signOut}</button>
+            </p>
+            <p class="status err" id="acc-none" hidden>{S.none}</p>
+
+            <form class="form card pad" id="acc-form" hidden>
+              <div class="field" id="acc-pick" hidden><label for="acc-handle">{S.editing}</label><select id="acc-handle"></select></div>
+              <h2 id="acc-name" style="margin:0;font-size:1.4rem"></h2>
+              <a class="more" id="acc-view" href="#">{S.viewProfile}<Icon name="arrow" /></a>
+              <p class="muted" style="margin:0">{S.publicNote}</p>
+
+              <div class="photo-row">
+                <span class="avatar"><img id="acc-photo" alt="" hidden /><Icon name="user" /></span>
+                <div class="field"><label for="acc-file">{S.photo}</label><input id="acc-file" type="file" accept="image/*" /><small class="muted">{S.photoHint}</small></div>
+              </div>
+
+              <div class="two">
+                {fields.map((f) => <div class="field"><label for={`f-${f}`}>{S[f]}</label><input id={`f-${f}`} name={f} type={types[f] ?? 'text'} maxlength="200" /></div>)}
+              </div>
+              <div class="field"><label for="f-bio">{S.bio}</label><textarea id="f-bio" name="bio" maxlength="4000"></textarea></div>
+
+              {site.features.bangla && (
+                <details>
+                  <summary style="font-weight:700;cursor:pointer">{S.bangla}</summary>
+                  <div class="form" style="margin-top:14px" lang="bn">
+                    <div class="two">
+                      <div class="field"><label for="b-profession">{bn.profession}</label><input id="b-profession" name="bn.profession" maxlength="200" /></div>
+                      <div class="field"><label for="b-organisation">{bn.organisation}</label><input id="b-organisation" name="bn.organisation" maxlength="200" /></div>
+                    </div>
+                    <div class="field"><label for="b-bio">{bn.bio}</label><textarea id="b-bio" name="bn.bio" maxlength="4000"></textarea></div>
+                  </div>
+                </details>
+              )}
+
+              {site.features.greetings && (
+                <fieldset class="dates">
+                  <p class="muted" style="margin:0 0 12px">{S.datesNote}</p>
+                  <div class="two">
+                    {(['birthday', 'anniversary'] as const).map((k) => (
+                      <div class="field"><label>{S[k]}</label>
+                        <div style="display:flex;gap:8px">
+                          <select name={`${k}.month`} aria-label={`${S[k]} ${S.month}`}><option value="">{S.month}</option>{months.map((m) => <option value={m.v}>{m.label}</option>)}</select>
+                          <input name={`${k}.day`} type="number" min="1" max="31" placeholder={S.day} aria-label={`${S[k]} ${S.day}`} style="width:90px;flex:none" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+
+              <fieldset class="dates">
+                <p style="margin:0 0 12px;font-weight:700">{S.privateTitle}</p>
+                <div class="field"><label for="p-mobile">{S.mobile}</label><input id="p-mobile" type="tel" maxlength="20" placeholder="01XXXXXXXXX" /></div>
+                <label style="display:flex;gap:10px;align-items:center;margin-top:12px"><input id="p-sms" type="checkbox" checked style="width:20px;height:20px;min-height:0" />{S.smsOk}</label>
+              </fieldset>
+
+              <div><button class="btn btn-primary" type="submit" id="acc-save">{S.save}</button></div>
+              <p class="status" id="acc-status" role="status" hidden></p>
+            </form>
+
+            <div class="card pad" id="acc-admin" hidden style="margin-top:28px">
+              <h2 style="font-size:1.3rem">{S.admin}</h2>
+              <p class="muted">{S.adminHint}</p>
+              <form class="two" id="acc-link" style="align-items:end">
+                <div class="field"><label for="acc-member">{S.member}</label><select id="acc-member" required></select></div>
+                <div class="field"><label for="acc-member-email">{S.email}</label><input id="acc-member-email" type="email" required /></div>
+                <div><button class="btn btn-primary btn-sm" type="submit">{S.link}</button></div>
+              </form>
+              <div class="rows" id="acc-list" style="margin-top:18px"></div>
+            </div>
+          </div>
+        </Fragment>
+      )}
+    </div>
+  </section>
+  <script type="application/json" id="acc-data" set:html={JSON.stringify(data).replace(/</g, '\\u003c')}></script>
+  {on && (
+    <script is:inline>
+      (async function () {
+        var cfg = JSON.parse(document.getElementById('acc-data').textContent), S = cfg.strings;
+        var $ = function (id) { return document.getElementById(id); };
+        var base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+        var mods;
+        try { mods = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]); }
+        catch (err) { $('acc-loading').textContent = S.failed; return; }
+        var A = mods[1], F = mods[2];
+        var app = mods[0].initializeApp(cfg.firebase), auth = A.getAuth(app), db = F.getFirestore(app);
+        var members = await fetch(cfg.membersUrl).then(function (r) { return r.json(); }).catch(function () { return []; });
+        var byId = {}; members.forEach(function (m) { byId[m.id] = m; });
+        var form = $('acc-form'), newPhoto = null, current = null, isAdmin = false;
+        var KEY = 'memberSignInEmail';
+
+        // Finish a sign-in started from the emailed link.
+        if (A.isSignInWithEmailLink(auth, location.href)) {
+          var saved = null;
+          try { saved = localStorage.getItem(KEY); } catch (e) {}
+          if (saved) {
+            try { await A.signInWithEmailLink(auth, saved, location.href); localStorage.removeItem(KEY); } catch (e) {}
+            history.replaceState(null, '', location.pathname);
+          } else {
+            $('acc-sent').hidden = false; $('acc-sent').textContent = S.confirm; $('acc-signin').dataset.finish = '1';
+          }
+        }
+
+        $('acc-signin').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var email = $('acc-email').value.trim().toLowerCase(), note = $('acc-sent');
+          try {
+            if (this.dataset.finish) {
+              await A.signInWithEmailLink(auth, email, location.href);
+              history.replaceState(null, '', location.pathname);
+              return;
+            }
+            await A.sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true });
+            try { localStorage.setItem(KEY, email); } catch (e) {}
+            note.className = 'status ok'; note.textContent = S.sent + ' ' + email;
+          } catch (err) { note.className = 'status err'; note.textContent = S.failed; }
+          note.hidden = false;
+        });
+        $('acc-out').addEventListener('click', function () { A.signOut(auth); });
+
+        A.onAuthStateChanged(auth, async function (user) {
+          $('acc-loading').hidden = true;
+          $('acc-signin').hidden = !!user;
+          $('acc-app').hidden = !user;
+          if (!user) return;
+          var email = user.email.toLowerCase();
+          $('acc-who').textContent = email;
+          try { isAdmin = (await F.getDoc(F.doc(db, 'admins', email))).exists(); } catch (e) { isAdmin = false; }
+          var mine = [];
+          try { (await F.getDocs(F.query(F.collection(db, 'access'), F.where('email', '==', email)))).forEach(function (d) { mine.push(d.id); }); } catch (e) {}
+          var choices = isAdmin ? members.map(function (m) { return m.id; }) : mine.filter(function (h) { return byId[h]; });
+          $('acc-none').hidden = choices.length > 0;
+          form.hidden = choices.length === 0;
+          var pick = $('acc-handle');
+          pick.innerHTML = '';
+          choices.forEach(function (h) { pick.add(new Option(byId[h].name, h)); });
+          if (mine.length && byId[mine[0]]) pick.value = mine[0];
+          $('acc-pick').hidden = choices.length < 2;
+          if (choices.length) load(pick.value);
+          $('acc-admin').hidden = !isAdmin;
+          if (isAdmin) { var sel = $('acc-member'); sel.innerHTML = ''; members.forEach(function (m) { sel.add(new Option(m.name, m.id)); }); listAccess(); }
+        });
+        $('acc-handle').addEventListener('change', function () { load(this.value); });
+
+        function field(name) { return form.querySelector('[name="' + name + '"]'); }
+        function put(name, v) { var el = field(name); if (el) el.value = v == null ? '' : v; }
+
+        // Fill the form with what the site shows now, overlaid with what the member last saved.
+        async function load(handle) {
+          current = handle; newPhoto = null; $('acc-status').hidden = true; $('acc-file').value = '';
+          var site = byId[handle], savedDoc = {};
+          try { var snap = await F.getDoc(F.doc(db, 'profiles', handle)); if (snap.exists()) savedDoc = snap.data(); } catch (e) {}
+          var p = Object.assign({}, site, savedDoc), b = Object.assign({}, site.bn, savedDoc.bn);
+          $('acc-name').textContent = site.name;
+          $('acc-view').href = cfg.home + handle + '/';
+          ['profession', 'organisation', 'phone', 'whatsapp', 'email', 'facebook', 'linkedin', 'website', 'bio'].forEach(function (k) { put(k, p[k]); });
+          ['profession', 'organisation', 'bio'].forEach(function (k) { put('bn.' + k, b[k]); });
+          ['birthday', 'anniversary'].forEach(function (k) { put(k + '.month', p[k] && p[k].month); put(k + '.day', p[k] && p[k].day); });
+          form.dataset.photo = savedDoc.photo || '';
+          showPhoto(savedDoc.photo || site.photoUrl);
+          $('p-mobile').value = ''; $('p-sms').checked = true;
+          try { var priv = await F.getDoc(F.doc(db, 'private', handle)); if (priv.exists()) { $('p-mobile').value = priv.data().mobile || ''; $('p-sms').checked = priv.data().sms !== false; } } catch (e) {}
+        }
+        function showPhoto(src) { var img = $('acc-photo'); img.hidden = !src; if (src) img.src = src; }
+
+        // Photos are shrunk in the browser so they stay small and quick to load.
+        $('acc-file').addEventListener('change', function () {
+          var file = this.files[0];
+          if (!file) return;
+          var img = new Image();
+          img.onload = function () {
+            var side = Math.min(img.width, img.height), out = Math.min(640, side), c = document.createElement('canvas');
+            c.width = c.height = out;
+            c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, out, out);
+            newPhoto = c.toDataURL('image/jpeg', 0.82);
+            showPhoto(newPhoto);
+            URL.revokeObjectURL(img.src);
+          };
+          img.src = URL.createObjectURL(file);
+        });
+
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var btn = $('acc-save'), status = $('acc-status'), label = btn.textContent;
+          var val = function (n) { var el = field(n); return el ? el.value.trim() : ''; };
+          var doc = { updatedAt: F.serverTimestamp() };
+          ['profession', 'organisation', 'phone', 'whatsapp', 'email', 'facebook', 'linkedin', 'website', 'bio'].forEach(function (k) { doc[k] = val(k); });
+          doc.bn = { profession: val('bn.profession'), organisation: val('bn.organisation'), bio: val('bn.bio') };
+          ['birthday', 'anniversary'].forEach(function (k) {
+            var m = Number(val(k + '.month')), d = Number(val(k + '.day'));
+            doc[k] = m >= 1 && m <= 12 && d >= 1 && d <= 31 ? { month: m, day: d } : null;
+          });
+          var photo = newPhoto || form.dataset.photo;
+          if (photo) doc.photo = photo;
+          btn.disabled = true; btn.textContent = S.saving;
+          try { await F.setDoc(F.doc(db, 'profiles', current), doc); await F.setDoc(F.doc(db, 'private', current), { mobile: $('p-mobile').value.trim(), sms: $('p-sms').checked, updatedAt: F.serverTimestamp() }); form.dataset.photo = photo || ''; status.className = 'status ok'; status.textContent = S.saved; }
+          catch (err) { status.className = 'status err'; status.textContent = S.failed; }
+          status.hidden = false; btn.disabled = false; btn.textContent = label;
+        });
+
+        async function listAccess() {
+          var box = $('acc-list');
+          box.innerHTML = '';
+          var snap = await F.getDocs(F.collection(db, 'access'));
+          snap.forEach(function (d) {
+            var row = document.createElement('div'), who = document.createElement('div'), b = document.createElement('b'), small = document.createElement('small'), rm = document.createElement('button');
+            row.className = 'card row'; who.className = 'who';
+            b.textContent = byId[d.id] ? byId[d.id].name : d.id; small.textContent = d.data().email;
+            rm.className = 'btn btn-line btn-sm'; rm.type = 'button'; rm.textContent = S.remove; rm.style.marginLeft = 'auto';
+            rm.onclick = async function () { await F.deleteDoc(F.doc(db, 'access', d.id)); listAccess(); };
+            who.append(b, small); row.append(who, rm); box.append(row);
+          });
+        }
+        $('acc-link').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          await F.setDoc(F.doc(db, 'access', $('acc-member').value), { email: $('acc-member-email').value.trim().toLowerCase() });
+          $('acc-member-email').value = '';
+          listAccess();
+        });
+      })();
+    </script>
+  )}
+</Base>
+<style>
+  .photo-row { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .photo-row .avatar { width: 96px; box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--accent); }
+  .photo-row .avatar :global(.icon) { width: 40px; height: 40px; }
+  .photo-row img:not([hidden]) + :global(.icon) { display: none; }
+  .photo-row .field { flex: 1; min-width: 200px; }
+  .dates { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin: 0; }
+  input[type='file'] { padding: 10px; min-height: 0; }
+</style>

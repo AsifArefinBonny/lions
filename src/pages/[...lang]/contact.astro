@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { getSite, langPaths, digits, pageMeta, type Lang } from '../../lib/site';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('contact', lang, t);
+const site = getSite(lang);
+const c = site.contact;
+const wa = digits(c.whatsapp);
+---
+<Base lang={lang} path="/contact/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap split">
+      <ContactForm lang={lang} />
+      <aside class="card pad">
+        <h3>{t('contact.details')}</h3>
+        <div class="info">
+          {c.address && <div><Icon name="pin" /><p style="margin:0"><b>{t('contact.address')}</b>{c.mapUrl ? <a href={c.mapUrl} rel="noopener">{c.address}</a> : c.address}</p></div>}
+          {c.meeting && <div><Icon name="calendar" /><p style="margin:0"><b>{t('contact.meeting')}</b>{c.meeting}</p></div>}
+          {c.phone && <div><Icon name="phone" /><p style="margin:0"><b>{t('members.call')}</b><a href={`tel:${c.phone.replace(/\s/g, '')}`}>{c.phone}</a></p></div>}
+          {c.email && <div><Icon name="mail" /><p style="margin:0"><b>{t('contact.email')}</b><a href={`mailto:${c.email}`}>{c.email}</a></p></div>}
+          {wa && <div><Icon name="chat" /><p style="margin:0"><b>WhatsApp</b><a href={`https://wa.me/${wa}`} rel="noopener">{t('contact.chat')}</a></p></div>}
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>

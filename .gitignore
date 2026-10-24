@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+.env
+.env.*
+src/assets/uploads/_bulletin/
+src/data/_profiles.json
+src/assets/uploads/_profiles/
+.sms-sent

@@ -1,0 +1,68 @@
+name: Deploy site
+
+# Builds the site on GitHub and publishes it to Cloudflare Pages.
+#
+# Repository secrets (Settings → Secrets and variables → Actions → Secrets):
+#   CLOUDFLARE_API_TOKEN    a token with the "Cloudflare Pages: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID   the account ID shown in the Cloudflare dashboard
+# Repository variables (same page → Variables):
+#   CF_PAGES_PROJECT        the Pages project name, e.g. dhaka-oasis
+#   SITE_URL                the public address, e.g. https://dhaka-oasis.pages.dev or the club's own domain
+#   CMS_AUTH_URL            optional, the admin sign-in service address
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Every night (00:10 in Dhaka): move finished events off "Upcoming" and refresh greetings.
+    - cron: '10 18 * * *'
+    # Every 15 minutes: publish profile changes members saved in the member portal (skipped when there are none).
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+      CMS_AUTH_URL: ${{ vars.CMS_AUTH_URL }}
+      CLOUDFLARE_READY: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && vars.CF_PAGES_PROJECT != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # On the 15-minute schedule, only rebuild if a member has changed their profile since the last build.
+      - id: check
+        run: |
+          if [ "${{ github.event.schedule }}" = "*/15 * * * *" ]; then
+            echo "build=$(node scripts/profiles-changed.mjs "$SITE_URL")" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+      # Used to turn bulletin PDFs into page images for the online reader.
+      - if: steps.check.outputs.build == 'true'
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - if: steps.check.outputs.build == 'true'
+        run: npm ci
+      - if: steps.check.outputs.build == 'true'
+        run: npm run build
+      - if: steps.check.outputs.build == 'true' && env.CLOUDFLARE_READY != 'true'
+        run: |
+          echo "::notice::Built, but not published. Add the Cloudflare secrets and variables described in the README."
+      - if: steps.check.outputs.build == 'true' && env.CLOUDFLARE_READY == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Creates the Pages project on the first run, then uploads the built site.
+          preCommands: npx wrangler pages project create "${{ vars.CF_PAGES_PROJECT }}" --production-branch main || true
+          command: pages deploy dist --project-name=${{ vars.CF_PAGES_PROJECT }} --branch=main

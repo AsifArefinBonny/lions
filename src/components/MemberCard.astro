@@ -1,0 +1,11 @@
+---
+import Avatar from './Avatar.astro';
+import { href, memberName, type Lang } from '../lib/site';
+const { member, role, note, lang } = Astro.props as { member: any; role?: string; note?: string; lang: Lang };
+---
+<a class="card person" href={href(`/${member.id}/`, lang)} data-name={`${member.data.name} ${role ?? ''}`.toLowerCase()}>
+  <Avatar name={member.data.name} enName={member.data.enName} photo={member.data.photo} size={96} />
+  <b>{memberName(member.data, lang, member.collection === 'leos')}</b>
+  {role && <small>{role}</small>}
+  {note && <em>{note}</em>}
+</a>

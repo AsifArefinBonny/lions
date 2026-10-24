@@ -1,0 +1,14 @@
+# Cloudflare Pages response headers.
+# Built images, styles and scripts have a fingerprint in their file name, so browsers may keep them for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The admin panel and member portal must never be shown inside another site.
+/admin/*
+  X-Frame-Options: DENY
+/account/*
+  X-Frame-Options: DENY
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

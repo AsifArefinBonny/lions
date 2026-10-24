@@ -1,0 +1,216 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Pic from '../../components/Pic.astro';
+import Avatar from '../../components/Avatar.astro';
+import EventCard from '../../components/EventCard.astro';
+import { getSite, getHome, href, joinPath, langPaths, clubNow, fmtNumber, fmtMonthYear, fmtDayMonth, memberName, type Lang } from '../../lib/site';
+import { getEvents, getBulletins, getMembers, getLeos, currentPositions } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const site = getSite(lang);
+const home = getHome(lang);
+const { upcoming, past } = await getEvents(lang);
+const [bulletin] = site.features.bulletin ? await getBulletins(lang) : [];
+const heroImage = resolveImage(home.hero.image);
+const msg = (home as any).message;
+const author = msg?.text && msg.member ? (await getMembers(lang)).find((m) => m.id === msg.member) : undefined;
+// Impact counters: two are worked out from the site's own content, the rest are typed in the admin panel.
+const impact = (home as any).impact ?? { items: [] };
+const charter = site.charterDate ? new Date(`${site.charterDate}T00:00:00Z`) : undefined;
+const now = clubNow();
+const years = charter ? now.getUTCFullYear() - charter.getUTCFullYear() - (now.getUTCMonth() * 100 + now.getUTCDate() < charter.getUTCMonth() * 100 + charter.getUTCDate() ? 1 : 0) : 0;
+const serviceCount = past.filter((e) => e.data.category === 'service').length;
+const counters = [
+  ...(impact.showAuto && years > 0 ? [{ value: years, suffix: '', label: t('impact.years'), icon: 'calendar' }] : []),
+  ...(impact.showAuto && serviceCount > 0 ? [{ value: serviceCount, suffix: '', label: t('impact.projects'), icon: 'heart' }] : []),
+  ...(impact.items ?? []).filter((i: any) => i.label).map((i: any) => ({ ...i, value: Number(i.value) || 0 })),
+];
+// Birthdays and anniversaries: every dated member is included in the page, and a small script
+// reveals the ones for today (and the week ahead), so it is right even between rebuilds.
+const greet = (home as any).greetings ?? {};
+const spot = (home as any).spotlight ?? {};
+const people = greet.enabled && site.features.members ? [...(await getMembers(lang)), ...(site.features.leo ? await getLeos(lang) : [])] : [];
+const celebrations = people.flatMap((m) =>
+  (['birthday', 'anniversary'] as const).filter((k) => m.data[k]).map((kind) => ({ kind, when: m.data[kind]!, member: m })),
+);
+const authorRole = author ? (await currentPositions(lang)).get(author.id) : undefined;
+---
+<Base lang={lang} path="/" image={home.hero.image}>
+  <section class:list={['hero', { photo: !!heroImage }]}>
+    {heroImage && <div class="hero-img"><Pic src={home.hero.image} alt="" width={1600} sizes="100vw" eager /></div>}
+    <div class="wrap">
+      {home.hero.eyebrow && <span class="eyebrow">{home.hero.eyebrow}</span>}
+      <h1>{home.hero.title}</h1>
+      <p>{home.hero.text}</p>
+      <div class="btns">
+        <a class="btn btn-gold" href={href(joinPath, lang)}>{t('nav.join')}</a>
+        <a class="btn btn-white" href={href('/about/', lang)}>{t('home.about')}</a>
+      </div>
+    </div>
+  </section>
+
+  {home.stats.length > 0 && (
+    <div class="wrap"><div class="stats">{home.stats.map((s) => <div class="stat"><b>{s.value}</b><span>{s.label}</span></div>)}</div></div>
+  )}
+
+  {celebrations.length > 0 && (
+    <section class="section" id="celebrations" hidden style="padding-bottom:0">
+      <div class="wrap">
+        <div id="cel-today" hidden>
+          <div class="sechead"><h2>{greet.title}</h2></div>
+          <div class="cels">
+            {celebrations.map((c) => (
+              <a class="card cel" href={href(`/${c.member.id}/`, lang)} data-md={`${c.when.month}-${c.when.day}`} hidden>
+                <Avatar name={c.member.data.name} enName={c.member.data.enName} photo={c.member.data.photo} size={84} />
+                <div>
+                  <small><Icon name={c.kind === 'birthday' ? 'cake' : 'rings'} />{t(`greet.${c.kind}`)}</small>
+                  <b>{memberName(c.member.data, lang, c.member.collection === 'leos')}</b>
+                  <p>{c.kind === 'birthday' ? greet.birthdayWish : greet.anniversaryWish}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        <div id="cel-soon" hidden style="margin-top:22px">
+          <h3 class="muted" style="font-size:.95rem">{greet.soonTitle}</h3>
+          <div class="soons">
+            {celebrations.map((c) => (
+              <a class="soon" href={href(`/${c.member.id}/`, lang)} data-md={`${c.when.month}-${c.when.day}`} hidden>
+                <Avatar name={c.member.data.name} enName={c.member.data.enName} photo={c.member.data.photo} size={34} />
+                <span>{memberName(c.member.data, lang, c.member.collection === 'leos')} <em>· {t(`greet.${c.kind}`)}, {fmtDayMonth(c.when, lang)}</em></span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {site.features.events && (
+    <section class="section">
+      <div class="wrap">
+        <div class="sechead"><h2>{t('home.upcoming')}</h2><a class="more" href={href('/events/', lang)}>{t('home.allEvents')}<Icon name="arrow" /></a></div>
+        {upcoming.length ? <div class="grid g2">{upcoming.slice(0, 4).map((e) => <EventCard event={e} lang={lang} />)}</div> : <p class="empty">{t('home.noUpcoming')}</p>}
+      </div>
+    </section>
+  )}
+
+  {home.causes.length > 0 && (
+    <section class="section soft">
+      <div class="wrap">
+        <div class="sechead"><h2>{home.causesTitle}</h2></div>
+        <div class="grid g3">
+          {home.causes.map((c) => <div class="card cause"><span class="ico"><Icon name={c.icon} /></span><h3>{c.title}</h3><p>{c.text}</p></div>)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {resolveImage(spot.image) && (
+    <section class="spot">
+      <div class="hero-img"><Pic src={spot.image} alt="" width={1600} sizes="100vw" /></div>
+      <div class="wrap">
+        {spot.title && <h2>{spot.title}</h2>}
+        {spot.text && <p>{spot.text}</p>}
+        {spot.button && spot.link && <a class="btn btn-gold" href={href(spot.link, lang)}>{spot.button}</a>}
+      </div>
+    </section>
+  )}
+
+  {counters.length > 0 && (
+    <section class="section impact">
+      <div class="wrap">
+        <div class="sechead"><h2>{impact.title || t('impact.title')}</h2></div>
+        <div class="counters">
+          {counters.map((c) => <div class="counter"><Icon name={c.icon ?? 'heart'} /><b data-count={c.value} data-suffix={c.suffix ?? ''}>{fmtNumber(c.value, lang)}{c.suffix}</b><span>{c.label}</span></div>)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {msg?.text && (
+    <section class="section">
+      <div class="wrap message">
+        {author && <a class="card person" href={href(`/${author.id}/`, lang)}><Avatar name={author.data.name} enName={author.data.enName} photo={author.data.photo} size={120} /><b>{memberName(author.data, lang)}</b>{authorRole && <small>{authorRole}</small>}</a>}
+        <div><span class="eyebrow" style="color:var(--highlight)">{msg.title || t('home.message')}</span><blockquote>{msg.text}</blockquote></div>
+      </div>
+    </section>
+  )}
+
+  {(bulletin || past.length > 0) && (
+    <section class="section">
+      <div class="wrap split">
+        {site.features.activities && past.length > 0 && (
+          <div>
+            <div class="sechead"><h2>{t('home.recent')}</h2><a class="more" href={href('/activities/', lang)}>{t('home.timeline')}<Icon name="arrow" /></a></div>
+            <div class="grid">{past.slice(0, 4).map((e) => <EventCard event={e} lang={lang} />)}</div>
+          </div>
+        )}
+        {bulletin && (
+          <aside>
+            <div class="sechead"><h2>{t('home.bulletin')}</h2></div>
+            <a class="card book" href={href(`/bulletin/${bulletin.id}/`, lang)}>
+              <div class="cover"><Pic src={bulletin.data.cover} alt={bulletin.data.title} width={640} height={853} sizes="(min-width: 860px) 320px, 90vw" /></div>
+              <div class="pad"><span class="tag gold">{fmtMonthYear(bulletin.data.date, lang)}</span><h3 style="margin:8px 0 4px">{bulletin.data.title}</h3><span class="more">{t('home.readBulletin')}<Icon name="arrow" /></span></div>
+            </a>
+          </aside>
+        )}
+      </div>
+    </section>
+  )}
+
+  <section class:list={['band', { photo: !!resolveImage(home.join.image) }]}>
+    {resolveImage(home.join.image) && <div class="hero-img"><Pic src={home.join.image} alt="" width={1600} sizes="100vw" /></div>}
+    <div class="wrap">
+      <div><h2>{home.join.title}</h2><p>{home.join.text}</p></div>
+      <a class:list={['btn', resolveImage(home.join.image) ? 'btn-gold' : 'btn-primary']} href={href(joinPath, lang)}>{home.join.button}</a>
+    </div>
+  </section>
+  <script is:inline define:vars={{ offset: site.utcOffsetHours }}>
+    // Show today's birthdays and anniversaries, and those in the next seven days, by the club's own date.
+    (function () {
+      var box = document.getElementById('celebrations');
+      if (!box) return;
+      var now = new Date(Date.now() + offset * 3600000);
+      var today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+      function daysUntil(md) {
+        var p = md.split('-'), d = Date.UTC(now.getUTCFullYear(), p[0] - 1, p[1]);
+        if (d < today) d = Date.UTC(now.getUTCFullYear() + 1, p[0] - 1, p[1]);
+        return Math.round((d - today) / 86400000);
+      }
+      var todayCount = 0, soon = [];
+      box.querySelectorAll('.cel').forEach(function (el) { if (daysUntil(el.dataset.md) === 0) { el.hidden = false; todayCount++; } });
+      box.querySelectorAll('.soon').forEach(function (el) { var n = daysUntil(el.dataset.md); if (n > 0 && n <= 7) { el.hidden = false; soon.push([n, el]); } });
+      soon.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (s) { s[1].parentNode.appendChild(s[1]); });
+      document.getElementById('cel-today').hidden = !todayCount;
+      document.getElementById('cel-soon').hidden = !soon.length;
+      box.hidden = !todayCount && !soon.length;
+    })();
+  </script>
+  <script is:inline define:vars={{ locale: lang === 'bn' ? 'bn-BD' : 'en-IN' }}>
+    // Count the impact numbers up when they scroll into view.
+    (function () {
+      var els = document.querySelectorAll('[data-count]');
+      if (!els.length || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var fmt = new Intl.NumberFormat(locale);
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          var el = en.target, end = Number(el.dataset.count), start = performance.now();
+          (function tick(now) {
+            var p = Math.min(1, (now - start) / 1200), v = Math.round(end * (1 - Math.pow(1 - p, 3)));
+            el.textContent = fmt.format(v) + el.dataset.suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          })(start);
+        });
+      }, { threshold: 0.4 });
+      els.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+</Base>

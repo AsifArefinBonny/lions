@@ -1,0 +1,97 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Pic from '../../components/Pic.astro';
+import { site, href, langPaths, fmtDate, fmtDay, fmtMonthYear, fmtYear, fmtNumber, pageMeta, type Lang } from '../../lib/site';
+import { getEvents } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.activities ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('activities', lang, t);
+const all = (await getEvents(lang)).all.sort((a, b) => +b.data.date - +a.data.date);
+const key = (d: Date) => `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}`;
+const groups = new Map<string, typeof all>();
+for (const e of all) groups.set(key(e.data.date), [...(groups.get(key(e.data.date)) ?? []), e]);
+const years = [...new Set(all.map((e) => e.data.date.getUTCFullYear()))];
+const monthName = (m: number) => new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(2024, m, 1)));
+---
+<Base lang={lang} path="/activities/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap" style="max-width:860px">
+      {all.length === 0 ? <p class="empty">{t('events.none')}</p> : (
+        <Fragment>
+          <form class="filters" id="filters">
+            <label>{t('act.year')}
+              <select name="y"><option value="">{t('act.all')}</option>{years.map((y) => <option value={y}>{fmtYear(new Date(Date.UTC(y, 0, 1)), lang)}</option>)}</select>
+            </label>
+            <label>{t('act.month')}
+              <select name="m"><option value="">{t('act.all')}</option>{Array.from({ length: 12 }, (_, m) => <option value={m + 1}>{monthName(m)}</option>)}</select>
+            </label>
+          </form>
+          {[...groups.entries()].map(([k, items]) => (
+            <div class="tl-month" data-y={k.split('-')[0]} data-m={k.split('-')[1]}>
+              <h3>{fmtMonthYear(items[0].data.date, lang)}</h3>
+              <ol class="tl">
+                {items.map((e) => {
+                  const img = resolveImage(e.data.cover);
+                  return (
+                    <li>
+                      <a class:list={['card', { 'has-img': !!img }]} href={href(`/events/${e.id}/`, lang)}>
+                        {img && <div class="cover"><Pic src={e.data.cover} alt="" width={400} height={300} sizes="(min-width: 640px) 200px, 90vw" /></div>}
+                        <div class="pad">
+                          <span class="when">{fmtDay(e.data.date, lang)}, {fmtDate(e.data.date, lang)}</span>
+                          <h4>{e.data.title}</h4>
+                          {e.data.summary && <p>{e.data.summary}</p>}
+                          {e.data.gallery.length > 0 && (
+                            <div class="thumbs">
+                              {e.data.gallery.slice(0, 4).map((g) => <span><Pic src={g} alt="" width={112} height={112} sizes="56px" /></span>)}
+                              {e.data.gallery.length > 4 && <span>+{fmtNumber(e.data.gallery.length - 4, lang)}</span>}
+                            </div>
+                          )}
+                          <div class="meta" style="margin-top:8px">
+                            {e.data.category && <span class="tag">{t(`cat.${e.data.category}`)}</span>}
+                            {e.data.leo && <span class="tag gold">{t('nav.leo')}</span>}
+                            {e.data.venue && <span>{e.data.venue}</span>}
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
+          <p class="empty" id="none" hidden>{t('act.none')}</p>
+        </Fragment>
+      )}
+    </div>
+  </section>
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('filters');
+      if (!form) return;
+      var groups = document.querySelectorAll('.tl-month');
+      var params = new URLSearchParams(location.search);
+      ['y', 'm'].forEach(function (k) { if (params.get(k)) form.elements[k].value = params.get(k); });
+      function apply() {
+        var y = form.elements.y.value, m = form.elements.m.value, shown = 0;
+        groups.forEach(function (g) {
+          var ok = (!y || g.dataset.y === y) && (!m || g.dataset.m === m);
+          g.hidden = !ok;
+          if (ok) shown++;
+        });
+        document.getElementById('none').hidden = shown > 0;
+        var q = new URLSearchParams();
+        if (y) q.set('y', y);
+        if (m) q.set('m', m);
+        history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+      }
+      form.addEventListener('change', apply);
+      apply();
+    })();
+  </script>
+</Base>

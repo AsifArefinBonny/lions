@@ -1,0 +1,110 @@
+{
+  "name": "Lions Club of Dhaka Oasis",
+  "shortName": "Dhaka Oasis",
+  "tagline": "We Serve",
+  "description": "Lions Club of Dhaka Oasis is a service club of Lions International, District 315 A2, Bangladesh, serving the community since 1997.",
+  "logo": "",
+  "affiliation": "Lions International, District 315 A2, Bangladesh",
+  "clubNo": "059925",
+  "identNo": "5327",
+  "charterDate": "1997-08-29",
+  "founder": "Ln. Sheikh Anisur Rahman PMJF",
+  "memberPrefix": "Ln.",
+  "utcOffsetHours": 6,
+  "theme": {
+    "primary": "#00338D",
+    "accent": "#EBB700",
+    "highlight": "#D7262E"
+  },
+  "contact": {
+    "email": "",
+    "phone": "",
+    "whatsapp": "",
+    "address": "Dhaka, Bangladesh",
+    "mapUrl": "",
+    "meeting": "",
+    "bn": {
+      "address": "ঢাকা, বাংলাদেশ",
+      "meeting": ""
+    }
+  },
+  "social": {
+    "facebook": "",
+    "instagram": "",
+    "youtube": "",
+    "linkedin": ""
+  },
+  "features": {
+    "events": true,
+    "members": true,
+    "committee": true,
+    "pastPresidents": true,
+    "bangla": true,
+    "bulletin": true,
+    "activities": true,
+    "gallery": true,
+    "donate": true,
+    "leo": true,
+    "greetings": true,
+    "clubs": true,
+    "join": true,
+    "resources": true,
+    "founder": true
+  },
+  "integrations": {
+    "web3formsKey": "",
+    "tawkPropertyId": "",
+    "tawkWidgetId": "",
+    "cmsAuthUrl": "",
+    "firebase": {
+      "apiKey": "",
+      "authDomain": "",
+      "projectId": "",
+      "appId": ""
+    }
+  },
+  "announcement": {
+    "enabled": false,
+    "text": "",
+    "link": "",
+    "bn": {
+      "text": ""
+    }
+  },
+  "links": [
+    {
+      "label": "Lions International",
+      "url": "https://www.lionsclubs.org/en"
+    },
+    {
+      "label": "District 315 A2",
+      "url": "https://district315a2.com/"
+    }
+  ],
+  "bn": {
+    "name": "লায়ন্স ক্লাব অব ঢাকা ওয়েসিস",
+    "shortName": "ঢাকা ওয়েসিস",
+    "tagline": "আমরা সেবা করি",
+    "description": "লায়ন্স ক্লাব অব ঢাকা ওয়েসিস লায়ন্স ইন্টারন্যাশনাল, জেলা ৩১৫ এ২, বাংলাদেশের একটি সেবামূলক ক্লাব। ১৯৯৭ সাল থেকে আমরা মানুষের সেবায় কাজ করছি।",
+    "affiliation": "লায়ন্স ইন্টারন্যাশনাল, জেলা ৩১৫ এ২, বাংলাদেশ",
+    "founder": "লায়ন শেখ আনিসুর রহমান পিএমজেএফ",
+    "memberPrefix": "লায়ন",
+    "leoPrefix": "লিও"
+  },
+  "leoPrefix": "Leo",
+  "sms": {
+    "enabled": false,
+    "language": "en",
+    "greetings": true,
+    "remindDaysBefore": [
+      1
+    ],
+    "dailyLimit": 50,
+    "reminderTemplate": "Reminder: {title}, {date} {time}, {venue}. - {club}",
+    "greetingTemplate": "{name}, {wish} - {club}",
+    "bn": {
+      "reminderTemplate": "স্মরণ করিয়ে দিচ্ছি: {title}, {date} {time}, {venue}। - {club}",
+      "greetingTemplate": "{name}, {wish} - {club}"
+    }
+  }
+}

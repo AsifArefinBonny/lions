@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import MemberCard from '../../components/MemberCard.astro';
+import { site, langPaths, pageMeta, type Lang } from '../../lib/site';
+import { getMembers, currentPositions } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.members ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('members', lang, t);
+const members = await getMembers(lang);
+const roles = await currentPositions(lang);
+---
+<Base lang={lang} path="/members/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap">
+      {members.length === 0 ? <p class="empty">{t('members.none')}</p> : (
+        <Fragment>
+          <label class="search"><Icon name="search" /><span class="sr">{t('members.search')}</span><input id="q" type="search" placeholder={t('members.search')} autocomplete="off" /></label>
+          <div class="grid g4" id="list">
+            {members.map((m) => <MemberCard member={m} role={roles.get(m.id)} lang={lang} />)}
+          </div>
+        </Fragment>
+      )}
+    </div>
+  </section>
+  <script is:inline>
+    (function () {
+      var q = document.getElementById('q');
+      if (!q) return;
+      var cards = document.querySelectorAll('#list > a');
+      q.addEventListener('input', function () {
+        var v = q.value.trim().toLowerCase();
+        cards.forEach(function (c) { c.hidden = v && c.dataset.name.indexOf(v) === -1 && c.textContent.toLowerCase().indexOf(v) === -1; });
+      });
+    })();
+  </script>
+</Base>

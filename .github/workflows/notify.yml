@@ -1,0 +1,67 @@
+name: SMS to members
+
+# Sends SMS through TextBee: birthday and anniversary greetings, reminders for events ticked
+# "Send an SMS reminder", and one-off messages typed below.
+#
+# Repository secrets:
+#   TEXTBEE_API_KEY             from the TextBee dashboard
+#   TEXTBEE_DEVICE_ID           optional, only if the account has more than one phone
+#   FIREBASE_SERVICE_ACCOUNT    the service account JSON, to read mobile numbers members saved in the portal
+#   SMS_CONTACTS                optional alternative: {"ln-name": "+8801XXXXXXXXX", ...}
+
+on:
+  schedule:
+    # Every day at 9:00 in Dhaka.
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Message to send to all members now (leave empty to run the daily greetings and reminders)'
+        required: false
+      dry_run:
+        description: 'Only show what would be sent'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sms
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Skip everything (no build) while SMS is switched off and no one-off message was typed.
+      - id: on
+        run: echo "go=$(node -e "const s=require('./src/data/site.json');console.log(!!(s.sms&&s.sms.enabled))")" >> "$GITHUB_OUTPUT"
+      - if: steps.on.outputs.go == 'true' || inputs.message != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.on.outputs.go == 'true' || inputs.message != ''
+        run: npm ci
+      - if: steps.on.outputs.go == 'true' || inputs.message != ''
+        run: npm run build
+      # The daily run happens once per day even if the workflow is started again by hand.
+      - id: day
+        run: echo "key=sms-daily-$(TZ=Asia/Dhaka date +%F)" >> "$GITHUB_OUTPUT"
+      - id: once
+        if: steps.on.outputs.go == 'true' && inputs.message == ''
+        uses: actions/cache@v4
+        with:
+          path: .sms-sent
+          key: ${{ steps.day.outputs.key }}
+      - if: inputs.message != '' || (steps.on.outputs.go == 'true' && (steps.once.outputs.cache-hit != 'true' || inputs.dry_run))
+        run: node scripts/send-sms.mjs ${{ inputs.message != '' && 'broadcast' || 'daily' }} && touch .sms-sent
+        env:
+          SMS_MESSAGE: ${{ inputs.message }}
+          SMS_DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          TEXTBEE_API_KEY: ${{ secrets.TEXTBEE_API_KEY }}
+          TEXTBEE_DEVICE_ID: ${{ secrets.TEXTBEE_DEVICE_ID }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SMS_CONTACTS: ${{ secrets.SMS_CONTACTS }}

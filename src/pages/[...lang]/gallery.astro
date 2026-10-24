@@ -1,0 +1,40 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Pic from '../../components/Pic.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { site, href, langPaths, fmtDate, pageMeta, type Lang } from '../../lib/site';
+import { getPhotoSets } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.gallery ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('gallery', lang, t);
+const full = async (src: string) => {
+  const meta = resolveImage(src);
+  return meta ? (await getImage({ src: meta, width: Math.min(2000, meta.width), quality: 88 })).src : src;
+};
+const sets = await Promise.all(
+  (await getPhotoSets(lang)).map(async (s) => ({ ...s, photos: await Promise.all(s.photos.map(async (src) => ({ src, full: await full(src) }))) })),
+);
+---
+<Base lang={lang} path="/gallery/" title={meta.title} description={meta.intro} image={sets[0]?.photos[0]?.src}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap">
+      {sets.length === 0 ? <p class="empty">{t('gallery.none')}</p> : sets.map((s) => (
+        <div style="margin-bottom:40px">
+          <div class="sechead">
+            <div><h2 style="font-size:1.35rem">{s.event.data.title}</h2><p class="muted" style="margin:10px 0 0">{fmtDate(s.event.data.date, lang)}</p></div>
+            <a class="more" href={href(`/events/${s.event.id}/`, lang)}>{t('events.details')}</a>
+          </div>
+          <div class="gallery">{s.photos.map((p) => <a href={p.full}><Pic src={p.src} alt={s.event.data.title} width={400} height={400} sizes="(min-width: 700px) 200px, 46vw" /></a>)}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+  <Lightbox />
+</Base>

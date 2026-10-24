@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Avatar from '../../components/Avatar.astro';
+import { site, getSite, getPresidents, href, langPaths, memberName, digitsFor, pageMeta, type Lang } from '../../lib/site';
+import { getMembers } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.pastPresidents ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('pastPresidents', lang, t);
+const byId = new Map((await getMembers(lang)).map((m) => [m.id, m]));
+const prefix = getSite(lang).memberPrefix;
+const english = getPresidents('en');
+const list = getPresidents(lang).map((p, i) => {
+  const member = p.member ? byId.get(p.member) : undefined;
+  return {
+    name: member ? memberName(member.data, lang) : [prefix, p.name].filter(Boolean).join(' '),
+    plain: member?.data.name ?? p.name,
+    enName: member?.data.enName ?? english[i]?.name,
+    photo: p.photo || member?.data.photo,
+    term: digitsFor(p.term?.replace('-', '–'), lang),
+    link: member ? href(`/${member.id}/`, lang) : undefined,
+  };
+});
+---
+<Base lang={lang} path="/past-presidents/" title={meta.title} description={meta.intro}>
+  <PageHead title={meta.title} text={meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap" style="max-width:760px">
+      {list.length === 0 ? <p class="empty">{t('pp.none')}</p> : (
+        <div class="rows">
+          {list.map((p) => {
+            const Tag = p.link ? 'a' : 'div';
+            return <Tag class="card row" href={p.link}><Avatar name={p.plain} enName={p.enName} photo={p.photo} size={56} /><b>{p.name}</b>{p.term && <span>{p.term}</span>}</Tag>;
+          })}
+        </div>
+      )}
+    </div>
+  </section>
+</Base>

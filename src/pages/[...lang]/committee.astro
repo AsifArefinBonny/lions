@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import MemberCard from '../../components/MemberCard.astro';
+import { site, langPaths, digitsFor, pageMeta, type Lang } from '../../lib/site';
+import { getCommittees, getMembers } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.committee ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const meta = pageMeta('committee', lang, t);
+const committees = await getCommittees(lang);
+const byId = new Map((await getMembers(lang)).map((m) => [m.id, m]));
+const grouped = (c: (typeof committees)[number]) => {
+  const groups = new Map<string, { member: any; position: string }[]>();
+  for (const row of c.data.members) {
+    const member = byId.get(row.member);
+    if (!member) continue;
+    const g = row.group ?? t('committee.other');
+    groups.set(g, [...(groups.get(g) ?? []), { member, position: row.position }]);
+  }
+  return [...groups.entries()];
+};
+const [current, ...older] = committees;
+---
+<Base lang={lang} path="/committee/" title={meta.title} description={meta.intro}>
+  <PageHead title={current ? `${meta.title} ${digitsFor(current.data.year.replace('-', '–'), lang)}` : meta.title} text={current?.data.theme ?? meta.intro} image={meta.image} />
+  <section class="section">
+    <div class="wrap">
+      {!current ? <p class="empty">{t('committee.none')}</p> : grouped(current).map(([group, rows]) => (
+        <div style="margin-bottom:40px">
+          <div class="sechead"><h2>{group}</h2></div>
+          <div class="grid g4">{rows.map((r) => <MemberCard member={r.member} role={r.position} lang={lang} />)}</div>
+        </div>
+      ))}
+      {older.length > 0 && (
+        <Fragment>
+          <div class="sechead"><h2>{t('committee.previous')}</h2></div>
+          {older.map((c) => (
+            <details class="card pad" style="margin-bottom:12px">
+              <summary style="font-weight:700;cursor:pointer">{t('committee.year')} {digitsFor(c.data.year.replace('-', '–'), lang)}</summary>
+              {grouped(c).map(([group, rows]) => (
+                <Fragment><h3 style="margin:20px 0 12px">{group}</h3><div class="grid g4">{rows.map((r) => <MemberCard member={r.member} role={r.position} lang={lang} />)}</div></Fragment>
+              ))}
+            </details>
+          ))}
+        </Fragment>
+      )}
+    </div>
+  </section>
+</Base>

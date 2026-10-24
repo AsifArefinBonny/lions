@@ -1,0 +1,75 @@
+---
+import { render } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import Icon from '../../../components/Icon.astro';
+import Pic from '../../../components/Pic.astro';
+import Lightbox from '../../../components/Lightbox.astro';
+import { site, href, langs, fmtDate, fmtDay, fmtTime, hasTime, calendarLink, clubNow, type Lang } from '../../../lib/site';
+import { getEvents, banglaBody } from '../../../lib/content';
+import { resolveImage } from '../../../lib/images';
+import { useT } from '../../../i18n/ui';
+
+export async function getStaticPaths() {
+  if (!site.features.events && !site.features.activities) return [];
+  const out = [];
+  for (const lang of langs) {
+    for (const event of (await getEvents(lang)).all) out.push({ params: { lang: lang === 'en' ? undefined : lang, slug: event.id }, props: { lang, event } });
+  }
+  return out;
+}
+const { lang, event } = Astro.props as { lang: Lang; event: any };
+const t = useT(lang);
+const d = event.data;
+const translated = banglaBody(event, lang);
+const { Content } = await render(event);
+const isPast = (d.endDate ?? d.date).getTime() < clubNow().getTime();
+const back = site.features.events ? ['/events/', t('events.back')] : ['/activities/', t('act.title')];
+const gallery = await Promise.all(
+  d.gallery.map(async (src: string) => {
+    const meta = resolveImage(src);
+    return { src, full: meta ? (await getImage({ src: meta, width: Math.min(2000, meta.width), quality: 88 })).src : src };
+  }),
+);
+---
+<Base lang={lang} path={`/events/${event.id}/`} title={d.title} description={d.summary} image={d.cover}>
+  <PageHead title={d.title} text={(translated || event.body?.trim() || d.cover) ? d.summary : undefined} back={href(back[0], lang)} backLabel={back[1]} />
+  <section class="section">
+    <div class="wrap split">
+      <div>
+        {d.cover && <Pic src={d.cover} alt="" width={900} sizes="(min-width: 860px) 720px, 92vw" class="hero-cover" eager />}
+        {(translated || event.body?.trim()) ? <div class="prose" style="margin-top:20px">{translated ? <Fragment set:html={translated} /> : <Content />}</div> : !d.cover && d.summary && <p class="lead">{d.summary}</p>}
+        {gallery.length > 0 && (
+          <Fragment>
+            <h2 style="margin-top:36px">{t('events.photos')}</h2>
+            <div class="gallery">{gallery.map((g) => <a href={g.full}><Pic src={g.src} alt="" width={400} height={400} sizes="(min-width: 700px) 200px, 46vw" /></a>)}</div>
+          </Fragment>
+        )}
+      </div>
+      <aside class="card pad">
+        <div class="info">
+          <div><Icon name="calendar" /><p style="margin:0"><b>{t('events.when')}</b>{fmtDay(d.date, lang)}, {fmtDate(d.date, lang)}{hasTime(d.date) && <Fragment><br />{fmtTime(d.date, lang)}</Fragment>}</p></div>
+          {(d.venue || d.address) && <div><Icon name="pin" /><p style="margin:0"><b>{t('events.where')}</b>{d.venue}{d.venue && d.address && <br />}{d.address}</p></div>}
+        </div>
+        <div class="btns" style="margin-top:20px">
+          {!isPast && <a class="btn btn-primary btn-sm" href={calendarLink(d)} rel="noopener"><Icon name="calendar" />{t('events.calendar')}</a>}
+          {d.mapUrl && <a class="btn btn-line btn-sm" href={d.mapUrl} rel="noopener"><Icon name="pin" />{t('events.map')}</a>}
+          <button class="btn btn-line btn-sm" type="button" data-share data-copied={t('members.copied')}><Icon name="share" /><span>{t('events.share')}</span></button>
+        </div>
+      </aside>
+    </div>
+  </section>
+  {gallery.length > 0 && <Lightbox />}
+  <script is:inline>
+    document.querySelectorAll('[data-share]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (navigator.share) return navigator.share({ title: document.title, url: location.href }).catch(function () {});
+        navigator.clipboard.writeText(location.href).then(function () { b.querySelector('span').textContent = b.dataset.copied; });
+      });
+    });
+  </script>
+</Base>
+<style>
+  :global(.hero-cover) { border-radius: var(--radius); width: 100%; }
+</style>

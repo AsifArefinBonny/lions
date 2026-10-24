@@ -1,0 +1,20 @@
+{
+  "title": "Clubs in our district",
+  "intro": "Lions clubs you can visit online.",
+  "clubs": [
+    {
+      "name": "Lions Club of Dhaka Oasis",
+      "location": "Dhaka",
+      "url": "",
+      "logo": "",
+      "bn": {
+        "name": "লায়ন্স ক্লাব অব ঢাকা ওয়েসিস",
+        "location": "ঢাকা"
+      }
+    }
+  ],
+  "bn": {
+    "title": "আমাদের জেলার ক্লাবসমূহ",
+    "intro": "যেসব লায়ন্স ক্লাবের ওয়েবসাইট আপনি ঘুরে দেখতে পারেন।"
+  }
+}

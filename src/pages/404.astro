@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { href } from '../lib/site';
+import { useT } from '../i18n/ui';
+const t = useT('en');
+---
+<Base lang="en" path="/404/" title={t('404.title')} noindex>
+  <PageHead title={t('404.title')} text={t('404.text')} />
+  <section class="section"><div class="wrap"><a class="btn btn-primary" href={href('/')}>{t('404.home')}</a></div></section>
+</Base>

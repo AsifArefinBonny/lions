@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import Avatar from '../../components/Avatar.astro';
+import { site, getClubs, href, langPaths, pageMeta, type Lang } from '../../lib/site';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.clubs ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const d = getClubs(lang) as any;
+const english = (getClubs('en') as any).clubs ?? [];
+const clubs = (d.clubs ?? []).map((c: any, i: number) => ({ ...c, enName: english[i]?.name ?? c.name })).filter((c: any) => c.name);
+const short = (n: string) => n.replace(/^(lions|leo) club of\s+/i, '');
+---
+<Base lang={lang} path="/clubs/" title={d.title} description={d.intro}>
+  <PageHead title={pageMeta('clubs', lang, () => '').title || d.title} text={pageMeta('clubs', lang, () => '').intro || d.intro} image={pageMeta('clubs', lang, () => '').image} />
+  <section class="section">
+    <div class="wrap">
+      {clubs.length === 0 ? <p class="empty">{t('clubs.none')}</p> : (
+        <div class="grid g3">
+          {clubs.map((c: any) => (
+            <a class="card person" href={c.url || href('/', lang)} rel={c.url ? 'noopener' : undefined}>
+              <Avatar name={c.name} enName={short(c.enName)} photo={c.logo} size={96} />
+              <b>{c.name}</b>
+              {c.location && <em>{c.location}</em>}
+              <small style="display:inline-flex;gap:6px;align-items:center;margin-top:6px">{t('clubs.visit')}<Icon name="arrow" /></small>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</Base>

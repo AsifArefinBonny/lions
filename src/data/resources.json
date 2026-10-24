@@ -1,0 +1,46 @@
+{
+  "title": "Resources",
+  "intro": "Useful documents and links for members.",
+  "items": [
+    {
+      "category": "Lions International",
+      "title": "Resource Center",
+      "description": "Forms, guides, presentations and logos from Lions International.",
+      "url": "https://www.lionsclubs.org/en/resources-for-members/resource-center",
+      "file": "",
+      "bn": {
+        "category": "লায়ন্স ইন্টারন্যাশনাল",
+        "title": "রিসোর্স সেন্টার",
+        "description": "লায়ন্স ইন্টারন্যাশনালের ফর্ম, গাইড, প্রেজেন্টেশন ও লোগো।"
+      }
+    },
+    {
+      "category": "Lions International",
+      "title": "About Leos",
+      "description": "Information about Leo clubs.",
+      "url": "https://www.lionsclubs.org/en/discover-our-clubs/about-leos",
+      "file": "",
+      "bn": {
+        "category": "লায়ন্স ইন্টারন্যাশনাল",
+        "title": "লিও সম্পর্কে",
+        "description": "লিও ক্লাব সম্পর্কে তথ্য।"
+      }
+    },
+    {
+      "category": "District",
+      "title": "District 315 A2 website",
+      "description": "District notices, events and dignitaries.",
+      "url": "https://district315a2.com/",
+      "file": "",
+      "bn": {
+        "category": "জেলা",
+        "title": "জেলা ৩১৫ এ২ ওয়েবসাইট",
+        "description": "জেলার নোটিশ, ইভেন্ট ও কর্মকর্তাবৃন্দ।"
+      }
+    }
+  ],
+  "bn": {
+    "title": "রিসোর্স",
+    "intro": "সদস্যদের জন্য প্রয়োজনীয় নথি ও লিংক।"
+  }
+}

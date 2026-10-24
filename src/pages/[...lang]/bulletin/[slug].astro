@@ -1,0 +1,95 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import Icon from '../../../components/Icon.astro';
+import Pic from '../../../components/Pic.astro';
+import { site, href, langs, fmtMonthYear, type Lang } from '../../../lib/site';
+import { getBulletins, banglaBody } from '../../../lib/content';
+import { useT } from '../../../i18n/ui';
+
+export async function getStaticPaths() {
+  if (!site.features.bulletin) return [];
+  const out = [];
+  for (const lang of langs) {
+    const all = await getBulletins(lang);
+    all.forEach((issue, i) => out.push({ params: { lang: lang === 'en' ? undefined : lang, slug: issue.id }, props: { lang, issue, newer: all[i - 1], older: all[i + 1] } }));
+  }
+  return out;
+}
+const { lang, issue, newer, older } = Astro.props as { lang: Lang; issue: any; newer?: any; older?: any };
+const t = useT(lang);
+const d = issue.data;
+const translated = banglaBody(issue, lang);
+const { Content } = await render(issue);
+const pdf = d.pdf ? href(d.pdf) : undefined;
+const num = (n: number) => new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en').format(n);
+---
+<Base lang={lang} path={`/bulletin/${issue.id}/`} title={d.title} description={d.summary ?? fmtMonthYear(d.date, lang)} image={d.cover}>
+  <PageHead title={d.title} text={fmtMonthYear(d.date, lang)} back={href('/bulletin/', lang)} backLabel={t('bulletin.back')}>
+    {pdf && (
+      <div class="btns" style="margin-top:18px">
+        <a class="btn btn-gold btn-sm" href={pdf} target="_blank" rel="noopener"><Icon name="book" />{t('bulletin.open')}</a>
+        <a class="btn btn-white btn-sm" href={pdf} download><Icon name="download" />{t('bulletin.download')}</a>
+      </div>
+    )}
+  </PageHead>
+  <section class="section reader-wrap">
+    <div class="wrap">
+      {d.pages.length > 0 ? (
+        <div class="reader" id="reader">
+          <div class="bar">
+            <button type="button" data-go="-1" aria-label={t('bulletin.prev')}><Icon name="back" /></button>
+            <span>{t('bulletin.page')} <b id="cur">{num(1)}</b> {t('bulletin.of')} {num(d.pages.length)}</span>
+            <button type="button" data-go="1" aria-label={t('bulletin.next')}><Icon name="arrow" /></button>
+          </div>
+          <div class="track" id="track" tabindex="0" aria-label={d.title}>
+            {d.pages.map((p: string, i: number) => <div class="page"><Pic src={p} alt={`${t('bulletin.page')} ${num(i + 1)}`} width={1400} quality={88} sizes="(min-width: 900px) 820px, 100vw" eager={i === 0} /></div>)}
+          </div>
+          <p class="hint">{t('bulletin.swipe')}</p>
+        </div>
+      ) : pdf ? (
+        <object class="pdf" data={pdf} type="application/pdf" aria-label={d.title}><p class="empty"><a class="btn btn-primary" href={pdf}>{t('bulletin.open')}</a></p></object>
+      ) : null}
+      {(d.summary || translated || issue.body?.trim()) && (
+        <div class="prose" style="margin:32px auto 0">{d.summary && <p class="lead">{d.summary}</p>}{translated ? <Fragment set:html={translated} /> : <Content />}</div>
+      )}
+      {(newer || older) && (
+        <nav class="pager">
+          {older ? <a class="card pad" href={href(`/bulletin/${older.id}/`, lang)}><small><Icon name="back" />{t('bulletin.older')}</small><b>{fmtMonthYear(older.data.date, lang)}</b></a> : <span></span>}
+          {newer ? <a class="card pad" style="text-align:right" href={href(`/bulletin/${newer.id}/`, lang)}><small style="justify-content:flex-end">{t('bulletin.newer')}<Icon name="arrow" /></small><b>{fmtMonthYear(newer.data.date, lang)}</b></a> : <span></span>}
+        </nav>
+      )}
+    </div>
+  </section>
+  <script is:inline define:vars={{ digits: lang === 'bn' ? 'bn-BD' : 'en' }}>
+    (function () {
+      var track = document.getElementById('track');
+      if (!track) return;
+      var cur = document.getElementById('cur');
+      var fmt = new Intl.NumberFormat(digits);
+      var index = function () { return Math.round(track.scrollLeft / track.clientWidth); };
+      var go = function (i) { track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' }); };
+      track.addEventListener('scroll', function () { cur.textContent = fmt.format(index() + 1); }, { passive: true });
+      document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(index() + Number(b.dataset.go)); }); });
+      track.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(index() + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(index() - 1); }
+      });
+    })();
+  </script>
+</Base>
+<style>
+  .reader-wrap { background: #eef1f6; }
+  .reader { max-width: 860px; margin-inline: auto; }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px; margin-bottom: 12px; background: #fff; border-radius: 999px; box-shadow: var(--shadow); position: sticky; top: 78px; z-index: 3; font-weight: 600; }
+  .bar button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--primary); color: #fff; cursor: pointer; }
+  .track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 10px; }
+  .track::-webkit-scrollbar { display: none; }
+  .page { flex: 0 0 100%; scroll-snap-align: center; display: grid; place-items: start center; padding: 0 2px; }
+  .page :global(img) { width: 100%; max-height: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgb(16 24 40 / 16%); }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 860px; margin: 32px auto 0; }
+  .pager small { display: flex; gap: 6px; align-items: center; color: var(--muted); font-weight: 700; }
+  .hint { text-align: center; color: var(--muted); font-size: .85rem; margin: 14px 0 0; }
+  .pdf { width: 100%; height: 80vh; border: 0; border-radius: 10px; background: #fff; }
+</style>

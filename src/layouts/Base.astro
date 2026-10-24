@@ -1,0 +1,145 @@
+---
+import '../styles/global.css';
+import { getImage } from 'astro:assets';
+import Icon from '../components/Icon.astro';
+import Pic from '../components/Pic.astro';
+import { getSite, href, nav, menu, joinPath, langs, digits, initials, type Lang } from '../lib/site';
+import { resolveImage } from '../lib/images';
+import { useT } from '../i18n/ui';
+
+interface Props { lang: Lang; path: string; title?: string; description?: string; image?: string; noindex?: boolean }
+const { lang, path, title, description, image, noindex = false } = Astro.props;
+const site = getSite(lang);
+const t = useT(lang);
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name} | ${site.tagline}`;
+const desc = description ?? site.description;
+const abs = (p: string) => new URL(p, Astro.site).href;
+const canonical = abs(href(path, lang));
+const other: Lang = lang === 'en' ? 'bn' : 'en';
+const meta = resolveImage(image) ?? resolveImage(site.logo);
+const og = meta ? abs((await getImage({ src: meta, width: Math.min(1200, meta.width), format: 'jpeg' })).src) : undefined;
+const logo = resolveImage(site.logo);
+const current = (p: string) => (path === p || (p !== '/' && path.startsWith(p)) ? 'page' : undefined);
+const { tawkPropertyId, tawkWidgetId } = site.integrations;
+const tawk = tawkPropertyId && tawkWidgetId ? `https://embed.tawk.to/${tawkPropertyId}/${tawkWidgetId}` : '';
+const wa = digits(site.contact.whatsapp);
+const year = new Date().getFullYear();
+const socials = Object.entries(site.social).filter(([, v]) => v);
+const mark = initials(getSite('en').shortName || getSite('en').name);
+const themeVars = `:root{--primary:${site.theme.primary};--accent:${site.theme.accent};--highlight:${site.theme.highlight}}`;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    {langs.length > 1 && langs.map((l) => <link rel="alternate" hreflang={l} href={abs(href(path, l))} />)}
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content={site.theme.primary} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title ?? site.name} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    {og && <meta property="og:image" content={og} />}
+    <meta name="twitter:card" content={og ? 'summary_large_image' : 'summary'} />
+    <link rel="icon" href={`data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="${site.theme.primary}" stroke="${site.theme.accent}" stroke-width="4"/><text x="32" y="41" font-family="Arial" font-weight="700" font-size="24" text-anchor="middle" fill="${site.theme.accent}">${mark}</text></svg>`)}`} />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
+    <style set:html={themeVars}></style>
+  </head>
+  <body>
+    <a class="skip" href="#main">{t('nav.skip')}</a>
+    <div class="topbar">
+      <div class="wrap">
+        <span>{site.affiliation}</span>
+        {langs.length > 1 && <a href={href(path, other)} lang={other} hreflang={other}><Icon name="globe" />{t('lang.switch')}</a>}
+      </div>
+    </div>
+    {site.announcement.enabled && site.announcement.text && (
+      <div class="notice"><div class="wrap">{site.announcement.link ? <a href={href(site.announcement.link, lang)}>{site.announcement.text}</a> : site.announcement.text}</div></div>
+    )}
+    <header class="header">
+      <div class="wrap">
+        <a class="brand" href={href('/', lang)}>
+          {logo ? <Pic src={site.logo} alt="" width={88} eager /> : <span class="mark" aria-hidden="true">{mark}</span>}
+          <span><strong>{site.name}</strong><small>{site.tagline}</small></span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          {menu.map((m) => 'group' in m ? (
+            <details><summary>{t(m.group)}</summary><div>{m.items.map((p) => <a href={href(p.path, lang)} aria-current={current(p.path)}>{t(p.key)}</a>)}</div></details>
+          ) : (
+            <a href={href(m.path, lang)} aria-current={current(m.path)}>{t(m.key)}</a>
+          ))}
+          <a class="btn btn-gold btn-sm" href={href(joinPath, lang)}>{t('nav.join')}</a>
+        </nav>
+        <details class="mnav">
+          <summary aria-label={t('nav.menu')}><Icon name="menu" /></summary>
+          <div>
+            <a href={href('/', lang)}>{t('nav.home')}</a>
+            {nav.map((n) => <a href={href(n.path, lang)} aria-current={current(n.path)}>{t(n.key)}</a>)}
+            <a class="btn btn-gold" href={href(joinPath, lang)}>{t('nav.join')}</a>
+          </div>
+        </details>
+      </div>
+    </header>
+    <main id="main"><slot /></main>
+    <footer class="footer">
+      <div class="wrap">
+        <div class="cols">
+          <div>
+            <a class="brand" href={href('/', lang)}><span class="mark" aria-hidden="true">{mark}</span><span><strong>{site.name}</strong><small>{site.tagline}</small></span></a>
+            <p>{site.affiliation}</p>
+            {socials.length > 0 && <div class="social">{socials.map(([k, v]) => <a href={v} rel="noopener" aria-label={k}><Icon name={k} /></a>)}</div>}
+          </div>
+          <div>
+            <h3>{t('footer.links')}</h3>
+            <ul>{nav.map((n) => <li><a href={href(n.path, lang)}>{t(n.key)}</a></li>)}</ul>
+          </div>
+          <div>
+            <h3>{t('footer.connect')}</h3>
+            <ul>
+              {site.contact.address && <li>{site.contact.address}</li>}
+              {site.contact.phone && <li><a href={`tel:${site.contact.phone.replace(/\s/g, '')}`}>{site.contact.phone}</a></li>}
+              {site.contact.email && <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>}
+              <li><a href={href('/contact/', lang)}>{t('contact.title')}</a></li>
+              {site.integrations.firebase?.projectId && <li><a href={href('/account/', lang)}>{t('footer.account')}</a></li>}
+            </ul>
+            {site.links.length > 0 && (
+              <Fragment><h3 style="margin-top:22px">{t('footer.lions')}</h3><ul>{site.links.map((l) => <li><a href={l.url} rel="noopener">{l.label}</a></li>)}</ul></Fragment>
+            )}
+          </div>
+        </div>
+        <div class="base"><span>© {year} {site.name}. {t('footer.rights')}</span><span>{site.clubNo && `${t('about.clubNo')} ${site.clubNo}`}</span></div>
+      </div>
+    </footer>
+    {!tawk && wa && <a class="fab" href={`https://wa.me/${wa}`} rel="noopener" aria-label={t('contact.chat')}><Icon name="chat" /></a>}
+    {tawk && (
+      <script is:inline define:vars={{ tawk }}>
+        // Live chat loads only after the visitor interacts or the page has been idle, so it never slows the first paint.
+        (function () {
+          var done = false;
+          function load() {
+            if (done) return;
+            done = true;
+            window.Tawk_API = window.Tawk_API || {};
+            window.Tawk_LoadStart = new Date();
+            var s = document.createElement('script');
+            s.async = true; s.src = tawk; s.charset = 'UTF-8'; s.setAttribute('crossorigin', '*');
+            document.head.appendChild(s);
+          }
+          ['pointerdown', 'keydown', 'scroll'].forEach(function (e) { addEventListener(e, load, { once: true, passive: true }); });
+          setTimeout(load, 6000);
+        })();
+      </script>
+    )}
+    <script is:inline>
+      // Close the mobile menu and dropdowns when clicking elsewhere.
+      document.addEventListener('click', function (e) {
+        document.querySelectorAll('.header details[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); });
+      });
+    </script>
+  </body>
+</html>

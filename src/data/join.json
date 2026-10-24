@@ -1,0 +1,96 @@
+{
+  "title": "Become a Lion",
+  "intro": "Join people who give their time to make life better for others.",
+  "benefits": [
+    {
+      "icon": "heart",
+      "title": "Serve your community",
+      "text": "Take part in eye camps, health camps, plantation and relief work that reach people directly.",
+      "bn": {
+        "title": "সমাজের সেবা করুন",
+        "text": "চক্ষু শিবির, স্বাস্থ্য ক্যাম্প, বৃক্ষরোপণ ও ত্রাণ কার্যক্রমে সরাসরি অংশ নিন।"
+      }
+    },
+    {
+      "icon": "hands",
+      "title": "Build friendships",
+      "text": "Meet every month with people from many professions who share the same wish to serve.",
+      "bn": {
+        "title": "বন্ধুত্ব গড়ুন",
+        "text": "প্রতি মাসে নানা পেশার মানুষের সাথে মিলিত হোন, যাঁদের সবার লক্ষ্য সেবা।"
+      }
+    },
+    {
+      "icon": "youth",
+      "title": "Grow as a leader",
+      "text": "Lead projects and committees, and learn through Lions leadership training.",
+      "bn": {
+        "title": "নেতৃত্ব বিকাশ করুন",
+        "text": "প্রকল্প ও কমিটির নেতৃত্ব দিন এবং লায়ন্স নেতৃত্ব প্রশিক্ষণের মাধ্যমে শিখুন।"
+      }
+    },
+    {
+      "icon": "globe",
+      "title": "Be part of something global",
+      "text": "Every club belongs to Lions International, a worldwide service organisation.",
+      "bn": {
+        "title": "বৈশ্বিক পরিবারের অংশ হোন",
+        "text": "প্রতিটি ক্লাব বিশ্বব্যাপী সেবা সংগঠন লায়ন্স ইন্টারন্যাশনালের অংশ।"
+      }
+    }
+  ],
+  "stepsTitle": "How to join",
+  "steps": [
+    {
+      "title": "Get in touch",
+      "text": "Send us the form below. A member will contact you.",
+      "bn": {
+        "title": "যোগাযোগ করুন",
+        "text": "নিচের ফর্মটি পাঠান। একজন সদস্য আপনার সাথে যোগাযোগ করবেন।"
+      }
+    },
+    {
+      "title": "Visit a meeting",
+      "text": "Come to a monthly meeting or a service activity as our guest.",
+      "bn": {
+        "title": "একটি সভায় আসুন",
+        "text": "অতিথি হিসেবে আমাদের মাসিক সভা বা সেবা কার্যক্রমে আসুন।"
+      }
+    },
+    {
+      "title": "Be sponsored and inducted",
+      "text": "Membership is by invitation. A member sponsors you and you are inducted at a club meeting.",
+      "bn": {
+        "title": "স্পনসর ও ইনডাকশন",
+        "text": "সদস্যপদ আমন্ত্রণের মাধ্যমে হয়। একজন সদস্য আপনাকে স্পনসর করবেন এবং ক্লাব সভায় আপনার ইনডাকশন হবে।"
+      }
+    }
+  ],
+  "faqTitle": "Common questions",
+  "faq": [
+    {
+      "q": "How much time does it take?",
+      "a": "One club meeting a month, plus the service activities you choose to join.",
+      "bn": {
+        "q": "কতটা সময় দিতে হয়?",
+        "a": "মাসে একটি ক্লাব সভা, এবং আপনি যেসব সেবা কার্যক্রমে যোগ দিতে চান।"
+      }
+    },
+    {
+      "q": "Is there a membership fee?",
+      "a": "Members pay yearly dues. Ask us for the current amount.",
+      "bn": {
+        "q": "সদস্য ফি আছে কি?",
+        "a": "সদস্যরা বার্ষিক ডিউস দেন। বর্তমান পরিমাণ জানতে আমাদের জিজ্ঞাসা করুন।"
+      }
+    }
+  ],
+  "formTitle": "Tell us about yourself",
+  "bn": {
+    "title": "লায়ন হোন",
+    "intro": "যাঁরা অন্যের জীবন সুন্দর করতে নিজের সময় দেন, তাঁদের সাথে যোগ দিন।",
+    "stepsTitle": "যেভাবে যোগ দেবেন",
+    "faqTitle": "সাধারণ প্রশ্ন",
+    "formTitle": "আপনার সম্পর্কে জানান"
+  }
+}

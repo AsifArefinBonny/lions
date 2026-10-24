@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import { site, getResources, href, langPaths, pageMeta, type Lang } from '../../lib/site';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.resources ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const d = getResources(lang) as any;
+const groups = new Map<string, any[]>();
+for (const item of (d.items ?? []).filter((i: any) => i.title && (i.file || i.url))) {
+  const g = item.category || t('res.other');
+  groups.set(g, [...(groups.get(g) ?? []), item]);
+}
+---
+<Base lang={lang} path="/resources/" title={d.title} description={d.intro}>
+  <PageHead title={pageMeta('resources', lang, () => '').title || d.title} text={pageMeta('resources', lang, () => '').intro || d.intro} image={pageMeta('resources', lang, () => '').image} />
+  <section class="section">
+    <div class="wrap">
+      {groups.size === 0 ? <p class="empty">{t('res.none')}</p> : [...groups.entries()].map(([group, items]) => (
+        <div style="margin-bottom:36px">
+          <div class="sechead"><h2 style="font-size:1.35rem">{group}</h2></div>
+          <div class="grid g2">
+            {items.map((i) => (
+              <a class="card res" href={i.file ? href(i.file) : i.url} rel="noopener" download={i.file ? '' : undefined}>
+                <Icon name={i.file ? 'download' : 'globe'} />
+                <div><b>{i.title}</b>{i.description && <p>{i.description}</p>}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

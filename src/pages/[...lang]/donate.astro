@@ -1,0 +1,74 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import Pic from '../../components/Pic.astro';
+import { site, getDonate, href, langPaths, fmtNumber, pageMeta, type Lang } from '../../lib/site';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.donate ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const d = getDonate(lang) as any;
+const methods = (d.methods ?? []).filter((m: any) => m.label);
+const projects = (d.projects ?? []).filter((p: any) => p.title);
+const pct = (p: any) => (Number(p.goal) > 0 ? Math.min(100, Math.round((Number(p.raised) / Number(p.goal)) * 100)) : 0);
+---
+<Base lang={lang} path="/donate/" title={d.title} description={d.intro}>
+  <PageHead title={pageMeta('donate', lang, () => '').title || d.title} text={pageMeta('donate', lang, () => '').intro || d.intro} image={pageMeta('donate', lang, () => '').image} />
+  {projects.length > 0 && (
+    <section class="section">
+      <div class="wrap">
+        <div class="sechead"><h2>{t('donate.projects')}</h2></div>
+        <div class="grid g3">
+          {projects.map((p: any) => (
+            <div class="card">
+              {p.image && <div class="cover"><Pic src={p.image} alt="" width={640} height={360} sizes="(min-width: 700px) 340px, 92vw" /></div>}
+              <div class="pad">
+                <h3>{p.title}</h3>
+                {p.text && <p class="muted" style="margin:0">{p.text}</p>}
+                {Number(p.goal) > 0 && (
+                  <Fragment>
+                    <div class="progress"><i style={`width:${pct(p)}%`}></i></div>
+                    <small class="muted">৳{fmtNumber(Number(p.raised) || 0, lang)} / ৳{fmtNumber(Number(p.goal), lang)} · {fmtNumber(pct(p), lang)}%</small>
+                  </Fragment>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+  <section class:list={['section', { soft: projects.length > 0 }]}>
+    <div class="wrap">
+      {methods.length > 0 && (
+        <Fragment>
+          <div class="sechead"><h2>{t('donate.ways')}</h2></div>
+          <div class="grid g3" style="margin-bottom:32px">
+            {methods.map((m: any) => (
+              <div class="card method">
+                <span class="tag gold" style="justify-self:start">{m.label}</span>
+                {m.accountName && <b>{m.accountName}</b>}
+                {m.number && <div class="num"><span>{m.number}</span><button class="btn btn-line btn-sm" type="button" data-copy={m.number} data-done={t('members.copied')}><Icon name="copy" /><span>{t('donate.copy')}</span></button></div>}
+                {m.details && <p class="muted" style="margin:0;white-space:pre-line">{m.details}</p>}
+                {m.qr && <Pic src={m.qr} alt={m.label} width={360} class="qrimg" />}
+              </div>
+            ))}
+          </div>
+        </Fragment>
+      )}
+      <div class="card pad" style="max-width:720px">
+        {d.note && <p class="lead" style="margin-top:0">{d.note}</p>}
+        <a class="btn btn-primary" href={href('/contact/?subject=donation', lang)}><Icon name="mail" />{t('donate.contact')}</a>
+      </div>
+    </div>
+  </section>
+  <script is:inline>
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        navigator.clipboard.writeText(b.dataset.copy).then(function () { b.querySelector('span').textContent = b.dataset.done; });
+      });
+    });
+  </script>
+</Base>

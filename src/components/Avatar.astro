@@ -1,0 +1,8 @@
+---
+import Pic from './Pic.astro';
+import { initials } from '../lib/site';
+import { resolveImage } from '../lib/images';
+const { name, photo, size = 96, enName } = Astro.props;
+const has = !!resolveImage(photo) || /^https?:/.test(photo ?? '');
+---
+<span class="avatar">{has ? <Pic src={photo} alt={name} width={size * 2} height={size * 2} sizes={`${size}px`} /> : <span aria-hidden="true">{initials(enName ?? name)}</span>}</span>

@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Icon from '../../components/Icon.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { site, getJoin, langPaths, pageMeta, type Lang } from '../../lib/site';
+
+export const getStaticPaths = () => (site.features.join ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const d = getJoin(lang) as any;
+---
+<Base lang={lang} path="/join/" title={d.title} description={d.intro}>
+  <PageHead title={pageMeta('join', lang, () => '').title || d.title} text={pageMeta('join', lang, () => '').intro || d.intro} image={pageMeta('join', lang, () => '').image} />
+  {d.benefits?.length > 0 && (
+    <section class="section">
+      <div class="wrap"><div class="grid g3">{d.benefits.map((b: any) => <div class="card cause"><span class="ico"><Icon name={b.icon} /></span><h3>{b.title}</h3><p>{b.text}</p></div>)}</div></div>
+    </section>
+  )}
+  {d.steps?.length > 0 && (
+    <section class="section soft">
+      <div class="wrap">
+        <div class="sechead"><h2>{d.stepsTitle}</h2></div>
+        <ol class="steps">{d.steps.map((s: any) => <li><h3>{s.title}</h3><p>{s.text}</p></li>)}</ol>
+      </div>
+    </section>
+  )}
+  <section class="section">
+    <div class="wrap split">
+      <div><div class="sechead"><h2>{d.formTitle}</h2></div><ContactForm lang={lang} subject="membership" /></div>
+      {d.faq?.length > 0 && (
+        <aside class="faq"><h3>{d.faqTitle}</h3>{d.faq.map((f: any) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</aside>
+      )}
+    </div>
+  </section>
+</Base>

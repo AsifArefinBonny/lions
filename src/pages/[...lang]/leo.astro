@@ -1,0 +1,60 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Pic from '../../components/Pic.astro';
+import MemberCard from '../../components/MemberCard.astro';
+import EventCard from '../../components/EventCard.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { getImage } from 'astro:assets';
+import { resolveImage } from '../../lib/images';
+import { site, getLeo, langPaths, pageMeta, type Lang } from '../../lib/site';
+import { getLeos, getMembers, getEvents } from '../../lib/content';
+import { useT } from '../../i18n/ui';
+
+export const getStaticPaths = () => (site.features.leo ? langPaths() : []);
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const leo = getLeo(lang) as any;
+const leos = await getLeos(lang);
+const advisor = leo.advisor ? (await getMembers(lang)).find((m) => m.id === leo.advisor) : undefined;
+const activities = (await getEvents(lang)).all.filter((e) => e.data.leo).sort((a, b) => +b.data.date - +a.data.date);
+const photos = await Promise.all(
+  [...new Set(activities.flatMap((e) => [e.data.cover, ...e.data.gallery]).filter((p) => resolveImage(p)) as string[])].slice(0, 24).map(async (src) => {
+    const meta = resolveImage(src)!;
+    return { src, full: (await getImage({ src: meta, width: Math.min(2000, meta.width), quality: 88 })).src };
+  }),
+);
+---
+<Base lang={lang} path="/leo/" title={leo.name} description={leo.intro} image={leo.image}>
+  <PageHead title={pageMeta('leo', lang, () => '').title || leo.name} text={pageMeta('leo', lang, () => '').intro || leo.intro} image={pageMeta('leo', lang, () => '').image} />
+  <section class="section">
+    <div class="wrap split">
+      <div class="prose">
+        {leo.image && <Pic src={leo.image} alt="" width={900} sizes="(min-width: 860px) 700px, 92vw" />}
+        {leo.body && <p style="white-space:pre-line">{leo.body}</p>}
+      </div>
+      {advisor && <aside><h3>{t('leo.advisor')}</h3><MemberCard member={advisor} role={t('leo.advisor')} lang={lang} /></aside>}
+    </div>
+  </section>
+  <section class="section soft">
+    <div class="wrap">
+      <div class="sechead"><h2>{t('leo.members')}</h2></div>
+      {leos.length ? <div class="grid g4">{leos.map((m) => <MemberCard member={m} role={m.data.position} lang={lang} />)}</div> : <p class="empty">{t('leo.none')}</p>}
+    </div>
+  </section>
+  {activities.length > 0 && (
+    <section class="section">
+      <div class="wrap">
+        <div class="sechead"><h2>{t('leo.activities')}</h2></div>
+        <div class="grid g2">{activities.map((e) => <EventCard event={e} lang={lang} />)}</div>
+        {photos.length > 0 && (
+          <Fragment>
+            <h3 style="margin:36px 0 14px">{t('leo.photos')}</h3>
+            <div class="gallery">{photos.map((p) => <a href={p.full}><Pic src={p.src} alt="" width={400} height={400} sizes="(min-width: 700px) 200px, 46vw" /></a>)}</div>
+          </Fragment>
+        )}
+      </div>
+    </section>
+  )}
+  {photos.length > 0 && <Lightbox />}
+</Base>
