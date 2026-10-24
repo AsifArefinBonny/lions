@@ -33,13 +33,19 @@ jobs:
     env:
       SITE_URL: ${{ vars.SITE_URL }}
       CMS_AUTH_URL: ${{ vars.CMS_AUTH_URL }}
-      CLOUDFLARE_READY: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && vars.CF_PAGES_PROJECT != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      # Publishing needs the Cloudflare token and project name; without them the site is only built.
+      - id: cf
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PROJECT: ${{ vars.CF_PAGES_PROJECT }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$PROJECT" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; fi
       # On the 15-minute schedule, only rebuild if a member has changed their profile since the last build.
       - id: check
         run: |
@@ -55,10 +61,10 @@ jobs:
         run: npm ci
       - if: steps.check.outputs.build == 'true'
         run: npm run build
-      - if: steps.check.outputs.build == 'true' && env.CLOUDFLARE_READY != 'true'
+      - if: steps.check.outputs.build == 'true' && steps.cf.outputs.ready != 'true'
         run: |
           echo "::notice::Built, but not published. Add the Cloudflare secrets and variables described in the README."
-      - if: steps.check.outputs.build == 'true' && env.CLOUDFLARE_READY == 'true'
+      - if: steps.check.outputs.build == 'true' && steps.cf.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
