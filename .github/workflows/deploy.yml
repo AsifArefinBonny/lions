@@ -70,5 +70,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # Creates the Pages project on the first run, then uploads the built site.
-          preCommands: npx wrangler pages project create "${{ vars.CF_PAGES_PROJECT }}" --production-branch main || true
+          preCommands: npx --yes wrangler pages project create "${{ vars.CF_PAGES_PROJECT }}" --production-branch main || true
           command: pages deploy dist --project-name=${{ vars.CF_PAGES_PROJECT }} --branch=main
