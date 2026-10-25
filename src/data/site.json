@@ -57,10 +57,10 @@
     "tawkWidgetId": "",
     "cmsAuthUrl": "",
     "firebase": {
-      "apiKey": "",
-      "authDomain": "",
-      "projectId": "",
-      "appId": ""
+      "apiKey": "AIzaSyBE3OGOdgwMLU8mrmCV5kmDjPy_eFEzZkI",
+      "authDomain": "oasis-93804.firebaseapp.com",
+      "projectId": "oasis-93804",
+      "appId": "1:806002869718:web:ad2bceaa1c8a3702ffd077"
     }
   },
   "announcement": {
